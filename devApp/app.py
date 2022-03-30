@@ -78,5 +78,19 @@ def actualizar_usuario(id):
         conn.commit()
         return redirect(url_for('registrar'))
 
+#para eliminar
+@app.route('/delete/<id>', methods =['POST','GET'])
+def eliminar_usuario(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        """
+        DELETE FROM usuarios WHERE id =%s
+        """,(id)
+    )
+    conn.commit()
+    flash("Usuario elimnado exitosamente")
+    return redirect(url_for('registrar'))
+
 if __name__ == '__main__':
     app.run(debug=True)
