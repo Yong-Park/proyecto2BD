@@ -16,7 +16,7 @@ conn = psycopg2.connect(
 
 #pagina defaul que mostrara al correr
 @app.route('/', methods=['GET'])
-def registrar():
+def mostrar_usuarios():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
@@ -35,21 +35,21 @@ def agregar_usuario():
         correo = request.form['correo']
         cur.execute(
             """
-            INSERT INTO usuarios (nombre, apellido, email) VALUES (%s,%s,%s)
-            """, (nombre,apellido,correo)
+            INSERT INTO usuarios (nombre, apellido, email) VALUES ('{0}','{1}','{2}')
+            """.format(nombre,apellido,correo)
         )
         conn.commit()
         flash('Usuario agregado exitosamente')
-        return redirect(url_for('registrar'))
+        return redirect(url_for('mostrar_usuarios'))
 #se manda al edit.html los valores del que se selecciono
-@app.route('/edit/<id>', methods=['POST', 'GET'])
+@app.route('/edit/<string:id>', methods=['POST', 'GET'])
 def obtener_usuario(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     cur.execute(
         """
-        SELECT * FROM usuarios WHERE id=%s
-        """,(id)
+        SELECT * FROM usuarios WHERE id={0}
+        """.format(id)
     )
     data = cur.fetchall()
     cur.close()
@@ -68,29 +68,34 @@ def actualizar_usuario(id):
         cur.execute(
             """
             UPDATE usuarios
-            SET nombre = %s,
-                apellido = %s,
-                email = %s
-            WHERE id = %s
-            """,(nombre,apellido,correo, id)
+            SET nombre = '{0}',
+                apellido = '{1}',
+                email = '{2}'
+            WHERE id = {3}
+            """.format(nombre,apellido,correo, id)
         )
         flash('usuario actualizado exitosamente')
         conn.commit()
-        return redirect(url_for('registrar'))
+        return redirect(url_for('mostrar_usuarios'))
 
 #para eliminar
-@app.route('/delete/<id>', methods =['POST','GET'])
+@app.route('/delete/<string:id>', methods =['POST','GET'])
 def eliminar_usuario(id):
+    print(id)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cur.execute(
         """
-        DELETE FROM usuarios WHERE id =%s
-        """,(id)
+        DELETE FROM usuarios WHERE id ={0}
+        """.format(id)
     )
     conn.commit()
     flash("Usuario elimnado exitosamente")
-    return redirect(url_for('registrar'))
+    return redirect(url_for('mostrar_usuarios'))
+
+@app.route('/registro')
+def registrar():
+    return render_template('registrar.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
