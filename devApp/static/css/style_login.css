@@ -1,7 +1,10 @@
 
 body {
-  background-color: #435165;
-  margin: 0;
+   background-image: url("https://static1.colliderimages.com/wordpress/wp-content/uploads/2022/01/The-Best-Movie-Franchises-To-Binge-Watch.jpg");
+   background-repeat: no-repeat;
+   background-size: cover;
+   background-color: #435165;
+   margin: 0;
 }
  
 .login-box

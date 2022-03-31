@@ -17,8 +17,8 @@ conn = psycopg2.connect(
 
 
 #pagina defaul que mostrara al correr
-@app.route('/', methods=['GET'])
-def mostrar_usuarios():
+@app.route('/admin_usuarios', methods=['GET'])
+def admin_usuarios():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
@@ -43,7 +43,7 @@ def agregar_usuario():
         )
         conn.commit()
         flash('Usuario agregado exitosamente')
-        return redirect(url_for('mostrar_usuarios'))
+        return redirect(url_for('admin_usuarios'))
 #se manda al edit.html los valores del que se selecciono
 @app.route('/edit/<string:id>', methods=['POST', 'GET'])
 def obtener_usuario(id):
@@ -79,7 +79,7 @@ def actualizar_usuario(id):
         )
         flash('usuario actualizado exitosamente')
         conn.commit()
-        return redirect(url_for('mostrar_usuarios'))
+        return redirect(url_for('admin_usuarios'))
 
 #para eliminar
 @app.route('/delete/<string:id>', methods =['POST','GET'])
@@ -94,10 +94,10 @@ def eliminar_usuario(id):
     )
     conn.commit()
     flash("Usuario elimnado exitosamente")
-    return redirect(url_for('mostrar_usuarios'))
+    return redirect(url_for('admin_usuarios'))
 
 #para crear una nueva cuenta para ingresar
-@app.route('/registro', methods=['GET','POST'])
+@app.route('/', methods=['GET','POST'])
 def registrar():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     # resvisar que fuera por funcion de post, que exista nombre_usuario la contrasena y el correo
@@ -217,6 +217,48 @@ def perfil():
         return render_template('homepage/perfil.html', account=account)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
+#para ingresar como administrador
+@app.route('/admin/', methods=['GET', 'POST'])
+def admin():
+
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # revisar si el username y la contrasena y el codigo de admin estan al darle post
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'codigo_admin' in request.form:
+        username = request.form['username']
+        password = request.form['password']
+        adminpassword= request.form['codigo_admin']
+        print("password ingresado ahorita en login: "+ str(password))
+
+        #revisar si la el username existe en la base de datos
+        cur.execute(
+            """
+            SELECT * FROM cuentas WHERE nombre_usuario = '{0}'
+            """.format(username)
+        )
+        #fetch solo un dato
+        account = cur.fetchone()
+        print(account)
+
+        if account:
+            password_rs = account['password']
+            print(password_rs)
+            # si la cuenta existe
+            if check_password_hash(password_rs, password) and adminpassword == '123':
+                # Create session data, we can access this data in other routes
+                session['loggedin'] = True
+                session['id'] = account['id']
+                session['username'] = account['nombre_usuario']
+                # redireccionar al homepage
+                return redirect(url_for('admin_usuarios'))
+            else:
+                # Account doesnt exist or username/password incorrect
+                flash('username/contraseña/codigo Incorrecta')
+        else:
+            # Account doesnt exist or username/password incorrect
+            flash('username/contraseña/codigo Incorrecta')
+
+    return render_template('/ingreso/login_admin.html')
 
 #correr el programa
 if __name__ == '__main__':

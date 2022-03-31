@@ -11,14 +11,16 @@
  </head>
  <body style="background-color:#ccc;">
   <div class="login-box" >
-  <div class="login-header">Login</div>
+  <div class="login-header">Login Administrador</div>
   <div class="login-body">
     <p>Porfavor ingrese su username y contraseña</p>
-    <form class="form-group" action="/login/" method="post">
+    <form class="form-group" action="/admin/" method="post">
         <label>Username</label>
         <input type="text" class="form-control" name="username" placeholder="Username" id="username" required>
         <label>Contraseña</label>
         <input type="password" class="form-control" name="password" placeholder="Contraseña" id="password" required>
+        <label>Codigo administador</label>
+        <input type="password" class="form-control" name="codigo_admin" placeholder="Codigo administrador" id="password" required>
         <input type="checkbox" value="checked"><b>Recordar</b>
         <input type="submit" value="Login" class="form-control btn btn-success " name="">
     </form>
