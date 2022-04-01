@@ -1,0 +1,22 @@
+{% extends 'administradores/layout_admin_homepage.html' %}
+  
+{% block body %}
+<h1>Perfil</h1>
+<div>
+    <p>Descripcion de la cuenta:</p>
+    <table>
+        <tr>
+            <td>Nombre:</td>
+            <td>{{ account['nombre'] }}</td>
+        </tr>
+  <tr>
+            <td>Username:</td>
+            <td>{{ account['nombre_usuario'] }}</td>
+        </tr>
+        <tr>
+            <td>Email:</td>
+            <td>{{ account['email'] }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

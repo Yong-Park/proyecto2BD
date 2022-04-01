@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "administradores/layout_admin_homepage.html" %}
 {%block body %}
     <div class ="row"><h3>Usuarios</h3></div>
     <div class = "row">
@@ -21,10 +21,13 @@
                         <input type="text" class="form-control" name="nombre" placeholder="Nombre">
                     </div>
                     <div class="form-group">
-                        <input type="text" class="form-control" name="apellido" placeholder="Apellido">
+                        <input type="text" class="form-control" name="username" placeholder="User Name">
                     </div>
                     <div class="form-group">
                         <input type="email" class="form-control" name="correo" placeholder="Correo">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="password" placeholder="Password">
                     </div>
                     <button class="btn btn-primary btn-block">
                         Guardar
@@ -38,7 +41,7 @@
                     <tr>
                         <td>ID</td>
                         <td>Nombre</td>
-                        <td>Apellido</td>
+                        <td>User Name</td>
                         <td>Correo</td>
                         <td>Accion</td>
                     </tr>
@@ -49,10 +52,10 @@
                         <td>{{row[0]}}</td>
                         <td>{{row[1]}}</td>
                         <td>{{row[2]}}</td>
-                        <td>{{row[3]}}</td>
+                        <td>{{row[4]}}</td>
                         <td width="130">
-                            <a href="/edit/{{row[0]}}" class="btn btn-secondary btn-sm">editar</a>
-                            <a href="/delete/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">eliminar</a>
+                            <a href="/edit_user/{{row[0]}}" class="btn btn-secondary btn-sm">editar</a>
+                            <a href="/delete_user/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">eliminar</a>
                         </td>
                     </tr>
                     {% endfor %}

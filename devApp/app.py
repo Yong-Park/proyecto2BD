@@ -16,80 +16,87 @@ conn = psycopg2.connect(
 )
 
 
-#pagina defaul que mostrara al correr
+#pagina donde se muestra todos los usuarios que hay
 @app.route('/admin_usuarios', methods=['GET'])
 def admin_usuarios():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT * FROM usuarios;
+        SELECT * FROM cuentas;
         """
     )
     list_users = cur.fetchall()
-    return render_template('editar_usuarios.html', list_users = list_users)
+    return render_template('administradores/admin_usuarios.html', list_users = list_users)
 
 #agregar usuarios a la base de datos
+#en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
 @app.route('/agregar_usuario', methods=['POST'])
 def agregar_usuario():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     if request.method == 'POST':
         nombre = request.form['nombre']
-        apellido = request.form['apellido']
+        username = request.form['username']
         correo = request.form['correo']
+        password= request.form['password']
+
+        #hashea la contrasena
+        _hashed_password = generate_password_hash(password)
+
         cur.execute(
             """
-            INSERT INTO usuarios (nombre, apellido, email) VALUES ('{0}','{1}','{2}')
-            """.format(nombre,apellido,correo)
+            INSERT INTO cuentas (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
+            """.format(nombre,username,_hashed_password,correo)
         )
         conn.commit()
         flash('Usuario agregado exitosamente')
         return redirect(url_for('admin_usuarios'))
-#se manda al edit.html los valores del que se selecciono
-@app.route('/edit/<string:id>', methods=['POST', 'GET'])
+#se manda al edit_users.html los valores del que se selecciono
+@app.route('/edit_user/<string:id>', methods=['POST', 'GET'])
 def obtener_usuario(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     
     cur.execute(
         """
-        SELECT * FROM usuarios WHERE id={0}
+        SELECT * FROM cuentas WHERE id={0}
         """.format(id)
     )
     data = cur.fetchall()
     cur.close()
+    print('se obtuvo el dato de usuario a actualizar')
     print(data[0])
-    return render_template('edit.html', usuario = data[0])
+    return render_template('administradores/edit_users.html', usuario = data[0])
 
-#al darle update del edit.html este correra y obtendra los datos y se actualizara
-@app.route('/update/<id>', methods=['POST'])
+#al darle update del edit_users.html este correra y obtendra los datos y se actualizara
+@app.route('/update_user/<id>', methods=['POST'])
 def actualizar_usuario(id):
     if request.method == 'POST':
         nombre = request.form['nombre']
-        apellido = request.form['apellido']
+        username = request.form['username']
         correo = request.form['email']
 
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute(
             """
-            UPDATE usuarios
+            UPDATE cuentas
             SET nombre = '{0}',
-                apellido = '{1}',
+                nombre_usuario = '{1}',
                 email = '{2}'
             WHERE id = {3}
-            """.format(nombre,apellido,correo, id)
+            """.format(nombre,username,correo, id)
         )
         flash('usuario actualizado exitosamente')
         conn.commit()
-        return redirect(url_for('admin_usuarios'))
+    return redirect(url_for('admin_usuarios'))
 
 #para eliminar
-@app.route('/delete/<string:id>', methods =['POST','GET'])
+@app.route('/delete_user/<string:id>', methods =['POST','GET'])
 def eliminar_usuario(id):
     print(id)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cur.execute(
         """
-        DELETE FROM usuarios WHERE id ={0}
+        DELETE FROM cuentas WHERE id ={0}
         """.format(id)
     )
     conn.commit()
@@ -203,6 +210,16 @@ def logout():
    session.pop('username', None)
    # Redirect to login page
    return redirect(url_for('login'))
+
+@app.route('/logout_admin')
+def logout_admin():
+    # Remove session data, this will log the user out
+   session.pop('loggedin', None)
+   session.pop('id', None)
+   session.pop('username', None)
+   # Redirect to login page
+   return redirect(url_for('admin'))
+
 #para mostrar el perfil del usuario
 @app.route('/perfil')
 def perfil(): 
@@ -217,6 +234,21 @@ def perfil():
         return render_template('homepage/perfil.html', account=account)
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
+#para mostrar el perfil del administrador
+@app.route('/perfil_admin')
+def perfil_admin(): 
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+   
+    # Check if user is loggedin
+    if 'loggedin' in session:
+        cursor.execute('SELECT * FROM cuentas WHERE id = {0}'.format(session['id']))
+        account = cursor.fetchone()
+        print(account)
+        # Show the profile page with account info
+        return render_template('administradores/perfil_admin.html', account=account)
+    # User is not loggedin redirect to login page
+    return redirect(url_for('admin'))
 
 #para ingresar como administrador
 @app.route('/admin/', methods=['GET', 'POST'])
