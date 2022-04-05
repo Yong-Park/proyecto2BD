@@ -22,11 +22,23 @@ def admin_usuarios():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT * FROM cuentas;
+        SELECT * FROM perfil;
         """
     )
     list_users = cur.fetchall()
     return render_template('administradores/admin_usuarios.html', list_users = list_users)
+
+#abrir el admin_contenido.html y importar los datos de la tabla de contenido
+@app.route('/admin_contenido')
+def admin_contenido():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM contenido;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_contenido.html', list_users = list_users)
 
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
@@ -44,12 +56,31 @@ def agregar_usuario():
 
         cur.execute(
             """
-            INSERT INTO cuentas (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
+            INSERT INTO perfil (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
             """.format(nombre,username,_hashed_password,correo)
         )
         conn.commit()
         flash('Usuario agregado exitosamente')
         return redirect(url_for('admin_usuarios'))
+#para agregar contenido en la tabla de contenido
+@app.route('/agregar_contenido', methods=['POST'])
+def agregar_contenido():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        tipo = request.form['tipo']
+        link = request.form['link']
+        duracion= request.form['duracion']
+
+        cur.execute(
+            """
+            INSERT INTO contenido (nombre, tipo, link, duracion) VALUES ('{0}','{1}','{2}','{3}')
+            """.format(nombre,tipo,link,duracion)
+        )
+        conn.commit()
+        flash('Contenido agregado exitosamente')
+        return redirect(url_for('admin_contenido'))
+        
 #se manda al edit_users.html los valores del que se selecciono
 @app.route('/edit_user/<string:id>', methods=['POST', 'GET'])
 def obtener_usuario(id):
@@ -57,7 +88,7 @@ def obtener_usuario(id):
     
     cur.execute(
         """
-        SELECT * FROM cuentas WHERE id={0}
+        SELECT * FROM perfil WHERE id={0}
         """.format(id)
     )
     data = cur.fetchall()
@@ -65,6 +96,22 @@ def obtener_usuario(id):
     print('se obtuvo el dato de usuario a actualizar')
     print(data[0])
     return render_template('administradores/edit_users.html', usuario = data[0])
+
+#se manda al edit_contenido.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_contenido/<string:id>', methods=['POST', 'GET'])
+def obtener_contenido(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM contenido WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el contenido a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_contenido.html', contenido = data[0])
 
 #al darle update del edit_users.html este correra y obtendra los datos y se actualizara
 @app.route('/update_user/<id>', methods=['POST'])
@@ -77,7 +124,7 @@ def actualizar_usuario(id):
         cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute(
             """
-            UPDATE cuentas
+            UPDATE perfil
             SET nombre = '{0}',
                 nombre_usuario = '{1}',
                 email = '{2}'
@@ -88,7 +135,31 @@ def actualizar_usuario(id):
         conn.commit()
     return redirect(url_for('admin_usuarios'))
 
-#para eliminar
+#al darle update del edit_contenido.html se correra este y actualizara la base de datos
+@app.route('/update_contenido/<id>', methods=['POST'])
+def actualizar_contenido(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        tipo = request.form['tipo']
+        link = request.form['link']
+        duracion = request.form['duracion']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE contenido
+            SET nombre = '{0}',
+                tipo = '{1}',
+                link = '{2}',
+                duracion = '{3}'
+            WHERE id = {4}
+            """.format(nombre,tipo,link,duracion, id)
+        )
+        flash('contenido actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_contenido'))
+
+#para eliminar usuarios
 @app.route('/delete_user/<string:id>', methods =['POST','GET'])
 def eliminar_usuario(id):
     print(id)
@@ -96,12 +167,27 @@ def eliminar_usuario(id):
 
     cur.execute(
         """
-        DELETE FROM cuentas WHERE id ={0}
+        DELETE FROM perfil WHERE id ={0}
         """.format(id)
     )
     conn.commit()
     flash("Usuario elimnado exitosamente")
     return redirect(url_for('admin_usuarios'))
+
+#para eliminar contenido
+@app.route('/delete_contenido/<string:id>', methods =['POST','GET'])
+def eliminar_contenido(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        """
+        DELETE FROM contenido WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Contenido elimnado exitosamente")
+    return redirect(url_for('admin_contenido'))
 
 #para crear una nueva cuenta para ingresar
 @app.route('/', methods=['GET','POST'])
@@ -118,10 +204,10 @@ def registrar():
         #hashea la contrasena
         _hashed_password = generate_password_hash(password)
         
-        #revisar si la cuenta ya existe en la base de datos de cuentas
+        #revisar si la cuenta ya existe en la base de datos de perfil
         cur.execute(
             """
-            SELECT * FROM cuentas WHERE nombre_usuario = '{0}'
+            SELECT * FROM perfil WHERE nombre_usuario = '{0}'
             """.format(username)
         )
         account = cur.fetchone()
@@ -139,7 +225,7 @@ def registrar():
             # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
             cur.execute(
                 """
-                INSERT INTO cuentas (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
+                INSERT INTO perfil (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
                 """.format(nombre_completo, username, _hashed_password, email)
                 )
             conn.commit()
@@ -164,7 +250,7 @@ def login():
         #revisar si la el username existe en la base de datos
         cur.execute(
             """
-            SELECT * FROM cuentas WHERE nombre_usuario = '{0}'
+            SELECT * FROM perfil WHERE nombre_usuario = '{0}'
             """.format(username)
         )
         #fetch solo un dato
@@ -227,7 +313,7 @@ def perfil():
    
     # Check if user is loggedin
     if 'loggedin' in session:
-        cursor.execute('SELECT * FROM cuentas WHERE id = {0}'.format(session['id']))
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
         account = cursor.fetchone()
         print(account)
         # Show the profile page with account info
@@ -242,7 +328,7 @@ def perfil_admin():
    
     # Check if user is loggedin
     if 'loggedin' in session:
-        cursor.execute('SELECT * FROM cuentas WHERE id = {0}'.format(session['id']))
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
         account = cursor.fetchone()
         print(account)
         # Show the profile page with account info
@@ -265,7 +351,7 @@ def admin():
         #revisar si la el username existe en la base de datos
         cur.execute(
             """
-            SELECT * FROM cuentas WHERE nombre_usuario = '{0}'
+            SELECT * FROM perfil WHERE nombre_usuario = '{0}'
             """.format(username)
         )
         #fetch solo un dato
@@ -295,3 +381,4 @@ def admin():
 #correr el programa
 if __name__ == '__main__':
     app.run(debug=True)
+
