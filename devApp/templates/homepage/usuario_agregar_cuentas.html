@@ -1,6 +1,6 @@
-{% extends "administradores/layout_admin_homepage.html" %}
-{%block body %}
-    <div class ="row"><h3>Usuarios</h3></div>
+{% extends "homepage/layout_home.html" %}
+{%block content %}
+    <div class ="row"><h3>Agregar cuenta</h3></div>
     <div class = "row">
         <div class="col-md-4">
             {% with messages = get_flashed_messages() %}
@@ -16,21 +16,12 @@
             {% endif %}
             {% endwith %}
             <div class="card card-body">
-                <form action ="/agregar_usuario" method="POST">
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="nombre" placeholder="Nombre">
-                    </div>
+                <form action ="/agregar_cuenta_usuario" method="POST">
                     <div class="form-group">
                         <input type="text" class="form-control" name="username" placeholder="User Name">
                     </div>
-                    <div class="form-group">
-                        <input type="email" class="form-control" name="correo" placeholder="Correo">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="password" placeholder="Password">
-                    </div>
                     <button class="btn btn-primary btn-block">
-                        Guardar
+                        Agregar
                     </button>
                 </form>
             </div>
@@ -40,10 +31,7 @@
                 <thead>
                     <tr>
                         <td>ID</td>
-                        <td>Nombre</td>
                         <td>User Name</td>
-                        <td>Correo</td>
-                        <td>Tipo subscripcion</td>
                         <td>Accion</td>
                     </tr>
                 </thead>
@@ -51,10 +39,7 @@
                     {% for row in list_users %}
                     <tr>
                         <td>{{row[0]}}</td>
-                        <td>{{row[1]}}</td>
                         <td>{{row[2]}}</td>
-                        <td>{{row[4]}}</td>
-                        <td>{{row[5]}}</td>
                         <td width="130">
                             <a href="/edit_user/{{row[0]}}" class="btn btn-secondary btn-sm">editar</a>
                             <a href="/delete_user/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">eliminar</a>

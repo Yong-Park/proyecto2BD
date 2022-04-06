@@ -53,15 +53,98 @@ def agregar_usuario():
 
         #hashea la contrasena
         _hashed_password = generate_password_hash(password)
-
+        #agregar el nuevo perfil 
         cur.execute(
             """
             INSERT INTO perfil (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
             """.format(nombre,username,_hashed_password,correo)
         )
         conn.commit()
+        
         flash('Usuario agregado exitosamente')
         return redirect(url_for('admin_usuarios'))
+#abrir la pantalla de agregar unas cuentas
+@app.route('/usuario_agregar_cuentas', methods=['POST', 'GET'])
+def usuario_agregar_cuentas():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM cuentas where id_perfil = '{0}';
+        """.format(session['id'])
+    )
+    list_users = cur.fetchall()
+    return render_template('homepage/usuario_agregar_cuentas.html', list_users = list_users)
+
+#agregar al cuentas pero en caso que el nombre_cuenta ya existe mostrar que este existe y que ingrese de nuevo
+@app.route('/agregar_cuenta_usuario', methods=['POST','GET'])
+def agregar_cuenta_usuario():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        username = request.form['username']
+        #revisar si el username ya existe
+        cur.execute(
+            """
+            SELECT * FROM cuentas WHERE nombre_cuenta = '{0}'
+            """.format(username)
+        )
+        account_exist = cur.fetchone()
+        print(account_exist)
+        #si la cuenta mostrar error y chequeo de validaciones de otras
+        if account_exist:
+            flash('El username ya existe! use otro.')
+            return redirect(url_for('usuario_agregar_cuentas'))
+        else:
+            #para obtener el tipo de supscripcion que tiene la cuenta
+            cur.execute(
+                """
+                SELECT * FROM perfil WHERE id = '{0}'
+                """.format(session['id'])
+            )
+            account = cur.fetchone()
+            #para revisar la cantidad de cuentas que tiene el usuario
+            cur.execute(
+                """
+                SELECT * FROM cuentas WHERE id_perfil = '{0}'
+                """.format(session['id'])
+            )
+            account_users = cur.fetchall()
+            print('estos son los usuarios que tiene la cuenta')
+            print(account_users)
+            print('el largo del de arriba es')
+            print(len(account_users))
+            print(type(account[5]))
+            #revisar 
+            if account[5]== 1:
+                flash('No puedes agregar mas de 1 cuenta con tu tipo de supscripcion')
+                return redirect(url_for('usuario_agregar_cuentas'))
+            elif account[5]==2:
+                if len(account_users) >= 4:
+                    flash('No puedes tener agregar de 4 cuenta con tu tipo de supscripcion')
+                    return redirect(url_for('usuario_agregar_cuentas'))
+                else:
+                    #agregar el nuevo perfil 
+                    cur.execute(
+                        """
+                        INSERT INTO cuentas (id_perfil, nombre_cuenta) VALUES ('{0}','{1}')
+                        """.format(session['id'], username)
+                    )
+                    conn.commit()
+                    flash('Usuario agregado exitosamente')
+            else:
+                if len(account_users) >= 8:
+                    flash('No puedes agregar mas de 8 cuenta con tu tipo de supscripcion')
+                    return redirect(url_for('usuario_agregar_cuentas'))
+                else:
+                    #agregar el nuevo perfil 
+                    cur.execute(
+                        """
+                        INSERT INTO cuentas (id_perfil, nombre_cuenta) VALUES ('{0}','{1}')
+                        """.format(session['id'], username)
+                    )
+                    conn.commit()
+                    flash('Usuario agregado exitosamente') 
+        return redirect(url_for('usuario_agregar_cuentas'))
+
 #para agregar contenido en la tabla de contenido
 @app.route('/agregar_contenido', methods=['POST'])
 def agregar_contenido():
@@ -207,7 +290,7 @@ def registrar():
         #revisar si la cuenta ya existe en la base de datos de perfil
         cur.execute(
             """
-            SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+            SELECT * FROM cuentas WHERE nombre_cuenta = '{0}'
             """.format(username)
         )
         account = cur.fetchone()
@@ -225,11 +308,24 @@ def registrar():
             # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
             cur.execute(
                 """
-                INSERT INTO perfil (nombre, nombre_usuario, password, email) VALUES ('{0}','{1}','{2}','{3}')
+                INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta) VALUES ('{0}','{1}','{2}','{3}', '1')
                 """.format(nombre_completo, username, _hashed_password, email)
                 )
             conn.commit()
             flash('Te has registrado exitosamente!')
+            #obtener el id del perfil ingresado
+            cur.execute(
+                """
+                SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+                """.format(username)
+            )
+            account_ = cur.fetchone()
+            cur.execute(
+                """
+                INSERT INTO cuentas (id_perfil, nombre_cuenta) VALUES ('{0}','{1}')
+                """.format(account_[0],username)
+            )
+            conn.commit()
     elif request.method == 'POST':
         # los datos estan vacios y solo se realizo la funcion de post
         flash('Porfavor llene las casillas!')
@@ -280,11 +376,14 @@ def login():
 #pantalla de home que sale luego de ingresar
 @app.route('/home')
 def home():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     # revisar si el usuario esta log in
     if 'loggedin' in session:
-    
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
+        account = cursor.fetchone()
+        print(account)
         # si es usuraio esta conectado mostrar pantalla de home
-        return render_template('homepage/home.html', username=session['username'])
+        return render_template('homepage/home.html', account=account)
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('login'))
 
@@ -377,6 +476,45 @@ def admin():
             flash('username/contraseña/codigo Incorrecta')
 
     return render_template('/ingreso/login_admin.html')
+#este es para abrir el edit_tipo_supscripcion.html y poder editar el tipo de supscripcion del usuario que sera entre 1,2,3
+@app.route('/cambiar_usuario_supscripcion', methods=['GET', 'POST'])
+def cambiar_usuario_supscripcion():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM perfil WHERE id={0}
+        """.format(session['id'])
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el perfil a actualizar')
+    print(data[0])
+    return render_template('homepage/edit_tipo_supscripcion.html', usuario = data[0])
+
+#al darle update del edit_users.html este correra y obtendra los datos y se actualizara
+@app.route('/update_user_tipo_cuenta/<id>', methods=['POST'])
+def actualizar_usuario_tipo_cuenta(id):
+    if request.method == 'POST':
+        tipo_cuenta = request.form['tipo_cuenta']
+        print(tipo_cuenta)
+        if tipo_cuenta == '1' or tipo_cuenta == '2' or tipo_cuenta== '3':
+            print('se logro')
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cur.execute(
+                """
+                UPDATE perfil
+                SET tipo_cuenta = '{0}'
+                WHERE id = {1}
+                """.format(tipo_cuenta, id)
+            )
+            flash('usuario actualizado exitosamente')
+            conn.commit()
+        else:
+            print('error')
+            flash('Porfavor que el tipo de cuenta sea 1,2 o 3')
+            return redirect(url_for('cambiar_usuario_supscripcion'))
+    return redirect(url_for('perfil'))
 
 #correr el programa
 if __name__ == '__main__':

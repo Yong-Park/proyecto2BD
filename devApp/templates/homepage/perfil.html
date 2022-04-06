@@ -19,6 +19,28 @@
             <td>Email:</td>
             <td>{{ account['email'] }}</td>
         </tr>
+        <tr>
+            <td>Tipo de Subscripcion:</td>
+            <td>{{account['tipo_cuenta']}}</td>
+        </tr>
     </table>
 </div>
+<p></p>
+<div class="col-md-3">
+    <form action ="/cambiar_usuario_supscripcion" method="POST">
+        <button class="btn btn-primary btn-block">
+            Cambiar tipo de supscripcion
+        </button>
+    </form>
+</div>
+<p></p>
+<div class="col-md-3">
+    <form action ="/usuario_agregar_cuentas" method="POST">
+        <button class="btn btn-primary btn-block">
+            Agregar cuentas
+        </button>
+    </form>
+</div>
+
+
 {% endblock %}
