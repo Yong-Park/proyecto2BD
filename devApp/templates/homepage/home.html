@@ -2,7 +2,38 @@
   
 {% block title %}Home{% endblock %}
   
-{% block content %}
-<h1 class="h2">Dashboard</h1>
-<p>Bienvenido de vuelta, {{ account['nombre_usuario'] }}!</p>
-{% endblock %}
+{%block content %}
+    <h1 class="h2">Peliculas</h1>
+    <p>Bienvenido de vuelta, {{ account['nombre_usuario'] }}!</p>
+        <div class="col-md-8">
+            <table id="example" class="table table-striped table-bordered" style="width: 100%">
+                <thead>
+                    <tr>
+                        <td>ID</td>
+                        <td>Nombre</td>
+                        <td>Tipo</td>
+                        <td>Link</td>
+                        <td>Duracion (minutos)</td>
+                        <td>Accion</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in list_users %}
+                    <tr>
+                        <td>{{row[0]}}</td>
+                        <td>{{row[1]}}</td>
+                        <td>{{row[2]}}</td>
+                        <td>{{row[3]}}</td>
+                        <td>{{row[4]}}</td>
+                        <td width="130">
+                            <a href="/edit_contenido/{{row[0]}}" class="btn btn-secondary btn-sm">Ver</a>
+                            <a href="/delete_contenido/{{row[0]}}" class="btn btn-secondary btn-sm">Favoritos</a>
+                            <a href="/delete_contenido/{{row[0]}}" class = "btn btn-secondary btn-sm">Vistos</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock%}

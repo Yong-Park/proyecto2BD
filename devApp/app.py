@@ -367,6 +367,7 @@ def login():
             else:
                 # Account doesnt exist or username/password incorrect
                 flash('username/contraseña Incorrecta')
+                
         else:
             # Account doesnt exist or username/password incorrect
             flash('username/contraseña Incorrecta')
@@ -382,8 +383,15 @@ def home():
         cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
         account = cursor.fetchone()
         print(account)
+        cursor.execute(
+        """
+        SELECT * FROM contenido;
+        """
+        )
+        list_users = cursor.fetchall()
+        print(list_users)
         # si es usuraio esta conectado mostrar pantalla de home
-        return render_template('homepage/home.html', account=account)
+        return render_template('homepage/home.html', account=account, list_users= list_users)
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('login'))
 
