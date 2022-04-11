@@ -69,10 +69,20 @@ def usuario_agregar_cuentas():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT * FROM cuentas where id_perfil = '{0}';
+        SELECT * FROM cuentas where id_perfil = '{0}' order by id;
         """.format(session['id'])
     )
-    list_users = cur.fetchall()
+    print('_______________________________________')
+    print(session['tipo_cuenta'])
+    print('_______________________________________')
+    if session['tipo_cuenta'] == '1':
+        list_users = cur.fetchmany(1)
+        
+    elif session['tipo_cuenta'] == '2':
+        list_users = cur.fetchmany(4)
+    else:
+        list_users = cur.fetchall()
+
     return render_template('homepage/usuario_agregar_cuentas.html', list_users = list_users)
 
 #agregar al cuentas pero en caso que el nombre_cuenta ya existe mostrar que este existe y que ingrese de nuevo
@@ -163,6 +173,70 @@ def agregar_contenido():
         conn.commit()
         flash('Contenido agregado exitosamente')
         return redirect(url_for('admin_contenido'))
+
+#para agregar el username correspondiente a la tabla de contenido en reproduccion segun con el perfil que este conectado
+@app.route('/agregar_contenido_en_reproduccion/<id_peli>', methods=['POST','GET'])
+def agregar_contenido_en_reproduccion(id_peli):
+    print(id_peli)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido) VALUES ('{0}','{1}')
+        """.format(session['id_conected'], id_peli)
+    )
+    conn.commit()
+    flash('Contenido en reproduccion')
+    return redirect(url_for('home'))
+
+#para agregar el contenido con la cuenta que esta a favoritos en caso que ya esta en favoritos mostrar error que no se puede pq ya esta en favoritos
+@app.route('/agregar_contenido_en_favoritos/<id_peli>', methods=['POST','GET'])
+def agregar_contenido_en_favoritos(id_peli):
+    print(id_peli)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM perfil_contenido_favoritos WHERE id_cuenta = '{0}' and id_contenido = '{1}'
+        """.format(session['id_conected'], id_peli)
+        )
+    existe =cur.fetchone()
+    print(existe)
+    if existe:
+        flash('No se puede debido a que ya esta en favoritos')
+    else:
+        cur.execute(
+            """
+            INSERT INTO perfil_contenido_favoritos (id_cuenta, id_contenido) VALUES ('{0}','{1}')
+            """.format(session['id_conected'], id_peli)
+        )
+        conn.commit()
+        flash('Contenido en agregado en favoritos')
+        return redirect(url_for('home'))
+    return redirect(url_for('home'))
+
+#para agregar el contenido con la cuenta que esta a vistos en caso que ya esta en vistos mostrar error que no se puede pq ya esta en vistos
+@app.route('/agregar_contenido_en_visto/<id_peli>', methods=['POST','GET'])
+def agregar_contenido_en_visto(id_peli):
+    print(id_peli)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM perfil_contenido_visto WHERE id_cuenta = '{0}' and id_contenido = '{1}'
+        """.format(session['id_conected'], id_peli)
+        )
+    existe =cur.fetchone()
+    print(existe)
+    if existe:
+        flash('No se puede debido a que ya esta en visto')
+    else:
+        cur.execute(
+            """
+            INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido) VALUES ('{0}','{1}')
+            """.format(session['id_conected'], id_peli)
+        )
+        conn.commit()
+        flash('Contenido en agregado en visto')
+        return redirect(url_for('home'))
+    return redirect(url_for('home'))
         
 #se manda al edit_users.html los valores del que se selecciono
 @app.route('/edit_user/<string:id>', methods=['POST', 'GET'])
@@ -195,6 +269,16 @@ def obtener_contenido(id):
     print('se obtuvo el contenido a actualizar')
     print(data[0])
     return render_template('administradores/edit_contenido.html', contenido = data[0])
+
+#se selecciona el perfil que el usuario escoja entre todos los que tiene
+@app.route('/seleccionar_user/<id>,<user>', methods=['POST', 'GET'])
+def seleccionar_user(id,user):
+    print(id)
+    print(user)
+    session['id_conected']= id
+    print(session['id_conected'])
+    session['username'] = user
+    return redirect(url_for('perfil'))
 
 #al darle update del edit_users.html este correra y obtendra los datos y se actualizara
 @app.route('/update_user/<id>', methods=['POST'])
@@ -271,6 +355,35 @@ def eliminar_contenido(id):
     conn.commit()
     flash("Contenido elimnado exitosamente")
     return redirect(url_for('admin_contenido'))
+
+#para eliminar los perfiles de las cuentas que se crearon de cada usuario
+@app.route('/delete_cuentas/<string:id>,<string:nom_cuentas>', methods =['POST','GET'])
+def eliminar_cuentas(id, nom_cuentas):
+    print(id)
+    print(nom_cuentas)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    #revisar si la cuenta que se esta escogiendo a elimina es parte la tabala de perfiles y en este caso mostrar que no es posible eliminarlo debido a que esta
+    #es la cuenta principal
+    cur.execute(
+        """
+        SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+        """.format(nom_cuentas)
+    )
+    account = cur.fetchone()
+    print(account)
+    if account:
+        flash("No se puede elimar este debido a que es la cuenta principal")
+    else:
+        cur.execute(
+            """
+            DELETE FROM cuentas WHERE id ={0}
+            """.format(id)
+        )
+        conn.commit()
+        flash("Cuenta elimnado exitosamente")
+        return redirect(url_for('usuario_agregar_cuentas'))
+    return redirect(url_for('usuario_agregar_cuentas'))
 
 #para crear una nueva cuenta para ingresar
 @app.route('/', methods=['GET','POST'])
@@ -362,6 +475,8 @@ def login():
                 session['loggedin'] = True
                 session['id'] = account['id']
                 session['username'] = account['nombre_usuario']
+                session['id_conected'] = account['id']
+                session['tipo_cuenta'] = account['tipo_cuenta']
                 # redireccionar al homepage
                 return redirect(url_for('home'))
             else:
@@ -391,7 +506,7 @@ def home():
         list_users = cursor.fetchall()
         print(list_users)
         # si es usuraio esta conectado mostrar pantalla de home
-        return render_template('homepage/home.html', account=account, list_users= list_users)
+        return render_template('homepage/home.html', account=account, list_users= list_users, user=session['username'])
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('login'))
 
@@ -401,6 +516,8 @@ def logout():
    session.pop('loggedin', None)
    session.pop('id', None)
    session.pop('username', None)
+   session.pop('id_conected', None)
+   session.pop('tipo_cuenta', None)
    # Redirect to login page
    return redirect(url_for('login'))
 
@@ -423,8 +540,9 @@ def perfil():
         cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
         account = cursor.fetchone()
         print(account)
+        print(session['username'])
         # Show the profile page with account info
-        return render_template('homepage/perfil.html', account=account)
+        return render_template('homepage/perfil.html', account=account, user = session['username'])
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
 
@@ -508,6 +626,7 @@ def actualizar_usuario_tipo_cuenta(id):
         print(tipo_cuenta)
         if tipo_cuenta == '1' or tipo_cuenta == '2' or tipo_cuenta== '3':
             print('se logro')
+            session['tipo_cuenta'] = tipo_cuenta
             cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             cur.execute(
                 """
