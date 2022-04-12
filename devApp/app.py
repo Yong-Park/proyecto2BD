@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, url_for, redirect, flash, ses
 import psycopg2 #pip install psycopg2
 import psycopg2.extras
 import re
+import random
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -39,6 +40,18 @@ def admin_contenido():
     )
     list_users = cur.fetchall()
     return render_template('/administradores/admin_contenido.html', list_users = list_users)
+
+#abrir el admin_anuncios.html y importar los datos de la tabla de contenido
+@app.route('/admin_anuncios')
+def admin_anuncios():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM anuncios;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_anuncios.html', list_users = list_users)
 
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
@@ -174,6 +187,23 @@ def agregar_contenido():
         flash('Contenido agregado exitosamente')
         return redirect(url_for('admin_contenido'))
 
+#para agregar anuncios en la tabla de anuncios
+@app.route('/agregar_anuncios', methods=['POST'])
+def agregar_anuncios():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        link = request.form['link']
+
+        cur.execute(
+            """
+            INSERT INTO anuncios (nombre, link) VALUES ('{0}','{1}')
+            """.format(nombre,link)
+        )
+        conn.commit()
+        flash('Anuncio agregado exitosamente')
+        return redirect(url_for('admin_anuncios'))
+
 #para agregar el username correspondiente a la tabla de contenido en reproduccion segun con el perfil que este conectado
 @app.route('/agregar_contenido_en_reproduccion/<id_peli>', methods=['POST','GET'])
 def agregar_contenido_en_reproduccion(id_peli):
@@ -184,6 +214,37 @@ def agregar_contenido_en_reproduccion(id_peli):
         INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido) VALUES ('{0}','{1}')
         """.format(session['id_conected'], id_peli)
     )
+    #reivar el tipo de cuenta que tiene el usuario y segun ello ver si se agrega anuncios a su cuenta del contenido que esta viendo
+    if session['tipo_cuenta'] == '1':
+        cur.execute(
+            """
+            SELECT * FROM contenido WHERE id = '{0}'
+            """.format(id_peli)
+        )
+        time = cur.fetchone()
+        print("___________________________________")
+        print(time)
+        time = time[4]
+        print(time)
+        print(type(time))
+        print("___________________________________")
+        #realizar la division para que cada 15 minutos se genere un anuncio que se escoga de forma aleatoria
+        cur.execute(
+            """
+            SELECT * FROM anuncios
+            """
+        )
+        anuncios = cur.fetchall()
+        numero_anuncios = time // 15
+        for x in range(numero_anuncios):
+            anuncio_escogido = random.choice(anuncios)
+            print(anuncio_escogido)
+            cur.execute(
+                """
+                INSERT INTO anuncios_contenido (id_perfil, id_contenido, id_anuncios) VALUES ('{0}','{1}','{2}')
+                """.format(session['id'],id_peli,anuncio_escogido[0])
+            )
+
     conn.commit()
     flash('Contenido en reproduccion')
     return redirect(url_for('home'))
@@ -270,6 +331,22 @@ def obtener_contenido(id):
     print(data[0])
     return render_template('administradores/edit_contenido.html', contenido = data[0])
 
+#se manda al edit_anuncios.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_anuncios/<string:id>', methods=['POST', 'GET'])
+def obtener_anuncios(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM anuncios WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el anuncio a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_anuncios.html', contenido = data[0])
+
 #se selecciona el perfil que el usuario escoja entre todos los que tiene
 @app.route('/seleccionar_user/<id>,<user>', methods=['POST', 'GET'])
 def seleccionar_user(id,user):
@@ -326,6 +403,26 @@ def actualizar_contenido(id):
         conn.commit()
     return redirect(url_for('admin_contenido'))
 
+#al darle update del edit_anuncios.html se correra este y actualizara la base de datos
+@app.route('/update_anuncios/<id>', methods=['POST'])
+def actualizar_anuncios(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        link = request.form['link']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE anuncios
+            SET nombre = '{0}',
+                link = '{1}'
+            WHERE id = {2}
+            """.format(nombre,link, id)
+        )
+        flash('anuncio actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_anuncios'))
+
 #para eliminar usuarios
 @app.route('/delete_user/<string:id>', methods =['POST','GET'])
 def eliminar_usuario(id):
@@ -355,6 +452,20 @@ def eliminar_contenido(id):
     conn.commit()
     flash("Contenido elimnado exitosamente")
     return redirect(url_for('admin_contenido'))
+
+#para eliminar anuncios
+@app.route('/delete_anuncios/<string:id>', methods =['POST','GET'])
+def eliminar_anuncios(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM anuncios WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Anuncio elimnado exitosamente")
+    return redirect(url_for('admin_anuncios'))
 
 #para eliminar los perfiles de las cuentas que se crearon de cada usuario
 @app.route('/delete_cuentas/<string:id>,<string:nom_cuentas>', methods =['POST','GET'])
