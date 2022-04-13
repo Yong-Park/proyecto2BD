@@ -53,6 +53,54 @@ def admin_anuncios():
     list_users = cur.fetchall()
     return render_template('/administradores/admin_anuncios.html', list_users = list_users)
 
+#abrir el admin_actores.html y importar los datos de la tabla de contenido
+@app.route('/admin_actores')
+def admin_actores():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM actor;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_actores.html', list_users = list_users)
+
+#abrir el admin_director.html y importar los datos de la tabla de contenido
+@app.route('/admin_director')
+def admin_director():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM director;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_director.html', list_users = list_users)
+
+#abrir el admin_director.html y importar los datos de la tabla de contenido
+@app.route('/admin_premio')
+def admin_premio():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM premios;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_premio.html', list_users = list_users)
+
+#abrir el admin_director.html y importar los datos de la tabla de contenido
+@app.route('/admin_genero')
+def admin_genero():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM generos;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/admin_genero.html', list_users = list_users)
+
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
 @app.route('/agregar_usuario', methods=['POST'])
@@ -88,11 +136,12 @@ def usuario_agregar_cuentas():
     print('_______________________________________')
     print(session['tipo_cuenta'])
     print('_______________________________________')
-    if session['tipo_cuenta'] == '1':
+    if int(session['tipo_cuenta']) == 1:
         list_users = cur.fetchmany(1)
-        
-    elif session['tipo_cuenta'] == '2':
+        print(list_users)
+    elif int(session['tipo_cuenta']) == 2:
         list_users = cur.fetchmany(4)
+        print(list_users)
     else:
         list_users = cur.fetchall()
 
@@ -204,6 +253,70 @@ def agregar_anuncios():
         flash('Anuncio agregado exitosamente')
         return redirect(url_for('admin_anuncios'))
 
+#para agregar actores en la tabla de actor
+@app.route('/agregar_actor', methods=['POST'])
+def agregar_actor():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur.execute(
+            """
+            INSERT INTO actor (nombre) VALUES ('{0}')
+            """.format(nombre,)
+        )
+        conn.commit()
+        flash('Actor agregado exitosamente')
+        return redirect(url_for('admin_actores'))
+
+#para agregar director en la tabla de director
+@app.route('/agregar_director', methods=['POST'])
+def agregar_director():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur.execute(
+            """
+            INSERT INTO director (nombre) VALUES ('{0}')
+            """.format(nombre,)
+        )
+        conn.commit()
+        flash('Director agregado exitosamente')
+        return redirect(url_for('admin_director'))
+
+#para agregar director en la tabla de premio
+@app.route('/agregar_premio', methods=['POST'])
+def agregar_premio():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur.execute(
+            """
+            INSERT INTO premios (nombre) VALUES ('{0}')
+            """.format(nombre,)
+        )
+        conn.commit()
+        flash('Premoi agregado exitosamente')
+        return redirect(url_for('admin_premio'))
+
+#para agregar director en la tabla de genero
+@app.route('/agregar_genero', methods=['POST'])
+def agregar_genero():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur.execute(
+            """
+            INSERT INTO generos (nombre) VALUES ('{0}')
+            """.format(nombre,)
+        )
+        conn.commit()
+        flash('Premoi agregado exitosamente')
+        return redirect(url_for('admin_genero'))
+
 #para agregar el username correspondiente a la tabla de contenido en reproduccion segun con el perfil que este conectado
 @app.route('/agregar_contenido_en_reproduccion/<id_peli>', methods=['POST','GET'])
 def agregar_contenido_en_reproduccion(id_peli):
@@ -244,6 +357,18 @@ def agregar_contenido_en_reproduccion(id_peli):
                 INSERT INTO anuncios_contenido (id_perfil, id_contenido, id_anuncios) VALUES ('{0}','{1}','{2}')
                 """.format(session['id'],id_peli,anuncio_escogido[0])
             )
+    #revisar si su tipo de no es el gratis
+    print('el tipo de cuenta es')
+    print(session['tipo_cuenta'])
+    if int(session['tipo_cuenta']) == 2 or int(session['tipo_cuenta']) == 3:
+        print("_____________________________")
+        print("se agregara al historial")
+        print("_____________________________")
+        cur.execute(
+            """
+            INSERT INTO historial_cuentas_avanzadas (id_perfil, id_contenido) VALUES ('{0}','{1}')
+            """.format(session['id_conected'], id_peli)
+        )
 
     conn.commit()
     flash('Contenido en reproduccion')
@@ -347,6 +472,70 @@ def obtener_anuncios(id):
     print(data[0])
     return render_template('administradores/edit_anuncios.html', contenido = data[0])
 
+#se manda al edit_actores.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_actor/<string:id>', methods=['POST', 'GET'])
+def obtener_actor(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM actor WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el actor a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_actores.html', contenido = data[0])
+
+#se manda al edit_director.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_director/<string:id>', methods=['POST', 'GET'])
+def obtener_director(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM director WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el director a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_director.html', contenido = data[0])
+
+#se manda al edit_premio.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_premio/<string:id>', methods=['POST', 'GET'])
+def obtener_premio(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM premios WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el premio a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_premio.html', contenido = data[0])
+
+#se manda al edit_genero.html para poder modificar el contenido para luego hacerle un update
+@app.route('/edit_genero/<string:id>', methods=['POST', 'GET'])
+def obtener_genero(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    
+    cur.execute(
+        """
+        SELECT * FROM generos WHERE id={0}
+        """.format(id)
+    )
+    data = cur.fetchall()
+    cur.close()
+    print('se obtuvo el genero a actualizar')
+    print(data[0])
+    return render_template('administradores/edit_genero.html', contenido = data[0])
+
 #se selecciona el perfil que el usuario escoja entre todos los que tiene
 @app.route('/seleccionar_user/<id>,<user>', methods=['POST', 'GET'])
 def seleccionar_user(id,user):
@@ -361,22 +550,25 @@ def seleccionar_user(id,user):
 @app.route('/update_user/<id>', methods=['POST'])
 def actualizar_usuario(id):
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        username = request.form['username']
-        correo = request.form['email']
-
-        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute(
-            """
-            UPDATE perfil
-            SET nombre = '{0}',
-                nombre_usuario = '{1}',
-                email = '{2}'
-            WHERE id = {3}
-            """.format(nombre,username,correo, id)
-        )
-        flash('usuario actualizado exitosamente')
-        conn.commit()
+        tipo_cuenta = request.form['tipo_cuenta']
+        
+        if tipo_cuenta == '1' or tipo_cuenta == '2' or tipo_cuenta== '3':
+            print('se logro')
+            session['tipo_cuenta'] = tipo_cuenta
+            cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cur.execute(
+                """
+                UPDATE perfil
+                SET tipo_cuenta = '{0}'
+                WHERE id = {1}
+                """.format(tipo_cuenta, id)
+            )
+            flash('usuario actualizado exitosamente')
+            conn.commit()
+        else:
+            print('error')
+            flash('Porfavor que el tipo de cuenta sea 1,2 o 3')
+            return redirect(url_for('obtener_usuario', id=id))
     return redirect(url_for('admin_usuarios'))
 
 #al darle update del edit_contenido.html se correra este y actualizara la base de datos
@@ -423,6 +615,78 @@ def actualizar_anuncios(id):
         conn.commit()
     return redirect(url_for('admin_anuncios'))
 
+#al darle update del edit_actores.html se correra este y actualizara la base de datos
+@app.route('/update_actor/<id>', methods=['POST'])
+def actualizar_actor(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE actor
+            SET nombre = '{0}'
+            WHERE id = {1}
+            """.format(nombre, id)
+        )
+        flash('actor actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_actores'))
+
+#al darle update del edit_director.html se correra este y actualizara la base de datos
+@app.route('/update_director/<id>', methods=['POST'])
+def actualizar_director(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE director
+            SET nombre = '{0}'
+            WHERE id = {1}
+            """.format(nombre, id)
+        )
+        flash('Director actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_director'))
+
+#al darle update del edit_premio.html se correra este y actualizara la base de datos
+@app.route('/update_premio/<id>', methods=['POST'])
+def actualizar_premio(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE premios
+            SET nombre = '{0}'
+            WHERE id = {1}
+            """.format(nombre, id)
+        )
+        flash('Premio actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_premio'))
+
+#al darle update del edit_genero.html se correra este y actualizara la base de datos
+@app.route('/update_genero/<id>', methods=['POST'])
+def actualizar_genero(id):
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+
+        cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cur.execute(
+            """
+            UPDATE generos
+            SET nombre = '{0}'
+            WHERE id = {1}
+            """.format(nombre, id)
+        )
+        flash('Genero actualizado exitosamente')
+        conn.commit()
+    return redirect(url_for('admin_genero'))
+
 #para eliminar usuarios
 @app.route('/delete_user/<string:id>', methods =['POST','GET'])
 def eliminar_usuario(id):
@@ -466,6 +730,62 @@ def eliminar_anuncios(id):
     conn.commit()
     flash("Anuncio elimnado exitosamente")
     return redirect(url_for('admin_anuncios'))
+
+#para eliminar actor
+@app.route('/delete_actor/<string:id>', methods =['POST','GET'])
+def eliminar_actor(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM actor WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Actor elimnado exitosamente")
+    return redirect(url_for('admin_actores'))
+
+#para eliminar director
+@app.route('/delete_director/<string:id>', methods =['POST','GET'])
+def eliminar_director(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM director WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Director elimnado exitosamente")
+    return redirect(url_for('admin_director'))
+    
+#para eliminar premio
+@app.route('/delete_premio/<string:id>', methods =['POST','GET'])
+def eliminar_premio(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM premios WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Premio elimnado exitosamente")
+    return redirect(url_for('admin_premio'))
+
+#para eliminar genero
+@app.route('/delete_genero/<string:id>', methods =['POST','GET'])
+def eliminar_genero(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM generos WHERE id ={0}
+        """.format(id)
+    )
+    conn.commit()
+    flash("Genero elimnado exitosamente")
+    return redirect(url_for('admin_genero'))
 
 #para eliminar los perfiles de las cuentas que se crearon de cada usuario
 @app.route('/delete_cuentas/<string:id>,<string:nom_cuentas>', methods =['POST','GET'])
