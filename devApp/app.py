@@ -77,7 +77,7 @@ def admin_director():
     list_users = cur.fetchall()
     return render_template('/administradores/admin_director.html', list_users = list_users)
 
-#abrir el admin_director.html y importar los datos de la tabla de contenido
+#abrir el admin_premio.html y importar los datos de la tabla de contenido
 @app.route('/admin_premio')
 def admin_premio():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -89,7 +89,7 @@ def admin_premio():
     list_users = cur.fetchall()
     return render_template('/administradores/admin_premio.html', list_users = list_users)
 
-#abrir el admin_director.html y importar los datos de la tabla de contenido
+#abrir el admin_genero.html y importar los datos de la tabla de contenido
 @app.route('/admin_genero')
 def admin_genero():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -100,6 +100,66 @@ def admin_genero():
     )
     list_users = cur.fetchall()
     return render_template('/administradores/admin_genero.html', list_users = list_users)
+
+#abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
+@app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
+def agregar_actor_contenido(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM actor;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/agregar_actor_contenido.html', list_users = list_users, id_contenido=id)
+
+#agregar el actor al contido que se selecciono
+@app.route('/agregar_actor_contenido_seleccionado/<id_actor>,<id_contenido>', methods=['GET','POST'])
+def agregar_actor_contenido_seleccionado(id_actor,id_contenido):
+    #revisar si el actor ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM actor_contenido WHERE id_actor = '{0}' AND id_contenido = '{1}';
+        """.format(id_actor,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        flash('No se puede debido a que el actor ya esta incluido para este contenido')
+    else:
+        cur.execute(
+        """
+        INSERT INTO actor_contenido (id_actor,id_contenido) VALUES ('{0}','{1}');
+        """.format(id_actor,id_contenido)
+        )
+        conn.commit()
+        flash("actor agregado exitosamente al contenido")
+    return redirect(url_for('agregar_actor_contenido', id = id_contenido))
+
+#eliminar el actor al contido que se selecciono
+@app.route('/eliminar_actor_contenido_seleccionado/<id_actor>,<id_contenido>', methods=['GET','POST'])
+def eliminar_actor_contenido_seleccionado(id_actor,id_contenido):
+    #revisar si el actor ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM actor_contenido WHERE id_actor = '{0}' AND id_contenido = '{1}';
+        """.format(id_actor,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        cur.execute(
+        """
+        DELETE FROM actor_contenido WHERE id_actor = '{0}' AND id_contenido = '{1}';
+        """.format(id_actor,id_contenido)
+        )
+        conn.commit()
+        flash("actor eliminado exitosamente al contenido")
+    else:
+        flash('No se puede debido a que no existe el actor en el contenido')
+    return redirect(url_for('agregar_actor_contenido', id = id_contenido))
 
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
