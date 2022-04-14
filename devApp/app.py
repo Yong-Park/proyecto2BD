@@ -161,6 +161,76 @@ def eliminar_actor_contenido_seleccionado(id_actor,id_contenido):
         flash('No se puede debido a que no existe el actor en el contenido')
     return redirect(url_for('agregar_actor_contenido', id = id_contenido))
 
+#abrir el agreagar_director_contenido.html y importar los datos de la tabla de contenido
+@app.route('/agregar_director_contenido/<id>', methods=['GET','POST'])
+def agregar_director_contenido(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM director;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/agregar_director_contenido.html', list_users = list_users, id_contenido=id)
+
+#agregar el director al contido que se selecciono
+@app.route('/agregar_director_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
+def agregar_director_contenido_seleccionado(id_director,id_contenido):
+    #revisar si el director ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM director_contenido WHERE id_director = '{0}' AND id_contenido = '{1}';
+        """.format(id_director,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        flash('No se puede debido a que el director ya esta incluido para este contenido')
+    else:
+        #revisar si el contenido ya tiene director ya que puede tener solo un director por contenido
+        cur.execute(
+            """
+            SELECT * FROM director_contenido WHERE id_contenido = '{0}'
+            """.format(id_contenido)
+        )
+        tiene_director=cur.fetchall()
+        if tiene_director:
+            flash('No se puede debido a que el contenido ya contiene un director')
+        else:
+            cur.execute(
+            """
+            INSERT INTO director_contenido (id_director,id_contenido) VALUES ('{0}','{1}');
+            """.format(id_director,id_contenido)
+            )
+            conn.commit()
+            flash("Director agregado exitosamente al contenido")
+    return redirect(url_for('agregar_director_contenido', id = id_contenido))
+
+#eliminar el director al contido que se selecciono
+@app.route('/eliminar_director_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
+def eliminar_director_contenido_seleccionado(id_director,id_contenido):
+    #revisar si el director ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM director_contenido WHERE id_director = '{0}' AND id_contenido = '{1}';
+        """.format(id_director,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        cur.execute(
+        """
+        DELETE FROM director_contenido WHERE id_director = '{0}' AND id_contenido = '{1}';
+        """.format(id_director,id_contenido)
+        )
+        conn.commit()
+        flash("Director eliminado exitosamente al contenido")
+    else:
+        flash('No se puede debido a que no existe el director en el contenido')
+    return redirect(url_for('agregar_director_contenido', id = id_contenido))
+
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
 @app.route('/agregar_usuario', methods=['POST'])
