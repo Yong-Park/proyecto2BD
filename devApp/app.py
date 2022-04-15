@@ -268,10 +268,10 @@ def agregar_genero_contenido_seleccionado(id_genero,id_contenido):
         flash("genero agregado exitosamente al contenido")
     return redirect(url_for('agregar_genero_contenido', id = id_contenido))
 
-#eliminar el actor al contido que se selecciono
+#eliminar el genero al contido que se selecciono
 @app.route('/eliminar_genero_contenido_seleccionado/<id_genero>,<id_contenido>', methods=['GET','POST'])
 def eliminar_genero_contenido_seleccionado(id_genero,id_contenido):
-    #revisar si el actor ya esta en el contenido 
+    #revisar si el genero ya esta en el contenido 
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
@@ -291,6 +291,66 @@ def eliminar_genero_contenido_seleccionado(id_genero,id_contenido):
     else:
         flash('No se puede debido a que no existe el genero en el contenido')
     return redirect(url_for('agregar_genero_contenido', id = id_contenido))
+
+#abrir el agregar_premio_contenido.html e importar los datos de la tabla de contenido
+@app.route('/agregar_premio_contenido/<id>', methods=['GET','POST'])
+def agregar_premio_contenido(id):
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM premios;
+        """
+    )
+    list_users = cur.fetchall()
+    return render_template('/administradores/agregar_premio_contenido.html', list_users = list_users, id_contenido=id)
+
+#agregar el premio al contido que se selecciono
+@app.route('/agregar_premio_contenido_seleccionado/<id_premio>,<id_contenido>', methods=['GET','POST'])
+def agregar_premio_contenido_seleccionado(id_premio,id_contenido):
+    #revisar si el premio ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM premio_contenido WHERE id_premio = '{0}' AND id_contenido = '{1}';
+        """.format(id_premio,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        flash('No se puede debido a que el premio ya esta incluido para este contenido')
+    else:
+        cur.execute(
+        """
+        INSERT INTO premio_contenido (id_premio,id_contenido) VALUES ('{0}','{1}');
+        """.format(id_premio,id_contenido)
+        )
+        conn.commit()
+        flash("premio agregado exitosamente al contenido")
+    return redirect(url_for('agregar_premio_contenido', id = id_contenido))
+
+#eliminar el premio al contido que se selecciono
+@app.route('/eliminar_premio_contenido_seleccionado/<id_premio>,<id_contenido>', methods=['GET','POST'])
+def eliminar_premio_contenido_seleccionado(id_premio,id_contenido):
+    #revisar si el premio ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM genero_contenido WHERE id_premio = '{0}' AND id_contenido = '{1}';
+        """.format(id_premio,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        cur.execute(
+        """
+        DELETE FROM genero_contenido WHERE id_premio = '{0}' AND id_contenido = '{1}';
+        """.format(id_premio,id_contenido)
+        )
+        conn.commit()
+        flash("premio eliminado exitosamente al contenido")
+    else:
+        flash('No se puede debido a que no existe el premio en el contenido')
+    return redirect(url_for('agregar_premio_contenido', id = id_contenido))
 
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
