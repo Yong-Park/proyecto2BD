@@ -1,7 +1,7 @@
 <!--este es para agregar, editar, eliminar contenidos para que los usuarios puedan ver de estos-->
 {% extends "administradores/layout_admin_homepage.html" %}
 {%block body %}
-    <div class ="row"><h3>Generos</h3></div>
+    <div class ="row"><h3>Premios</h3></div>
     <div class = "row">
         <div class="col-md-4">
             {% with messages = get_flashed_messages() %}
@@ -32,8 +32,8 @@
                         <td>{{row[0]}}</td>
                         <td>{{row[1]}}</td>
                         <td width="130">
-                            <a href="/agregar_genero_contenido_seleccionado/{{row[0]}},{{id_contenido}}" class="btn btn-secondary btn-sm">Agregar</a>
-                            <a href="/eliminar_genero_contenido_seleccionado/{{row[0]}},{{id_contenido}}" class="btn btn-danger btn-delete btn-sm">Quitar</a>
+                            <a href="/agregar_premio_contenido_seleccionado/{{row[0]}},{{id_contenido}}" class="btn btn-secondary btn-sm">Agregar</a>
+                            <a href="/eliminar_premio_contenido_seleccionado/{{row[0]}},{{id_contenido}}" class="btn btn-danger btn-delete btn-sm">Quitar</a>
                         </td>
                     </tr>
                     {% endfor %}
