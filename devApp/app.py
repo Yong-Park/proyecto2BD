@@ -232,7 +232,7 @@ def eliminar_director_contenido_seleccionado(id_director,id_contenido):
     return redirect(url_for('agregar_director_contenido', id = id_contenido))
 
 
-#abrir el agreagar_director_contenido.html y importar los datos de la tabla de contenido
+#abrir el agreagar_genero_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_genero_contenido/<id>', methods=['GET','POST'])
 def agregar_genero_contenido(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -244,63 +244,53 @@ def agregar_genero_contenido(id):
     list_users = cur.fetchall()
     return render_template('/administradores/agregar_genero_contenido.html', list_users = list_users, id_contenido=id)
 
-#agregar el director al contido que se selecciono
-@app.route('/agregar_genero_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
-def agregar_genero_contenido_seleccionado(id_director,id_contenido):
-    #revisar si el director ya esta en el contenido 
+#agregar el genero al contido que se selecciono
+@app.route('/agregar_genero_contenido_seleccionado/<id_genero>,<id_contenido>', methods=['GET','POST'])
+def agregar_genero_contenido_seleccionado(id_genero,id_contenido):
+    #revisar si el genero ya esta en el contenido 
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT * FROM genero WHERE id_director = '{0}' AND id_contenido = '{1}';
-        """.format(id_director,id_contenido)
+        SELECT * FROM genero_contenido WHERE id_genero = '{0}' AND id_contenido = '{1}';
+        """.format(id_genero,id_contenido)
     )
     existe = cur.fetchone()
 
     if existe:
-        flash('No se puede debido a que el director ya esta incluido para este contenido')
+        flash('No se puede debido a que el genero ya esta incluido para este contenido')
     else:
-        #revisar si el contenido ya tiene director ya que puede tener solo un director por contenido
-        cur.execute(
-            """
-            SELECT * FROM director_contenido WHERE id_contenido = '{0}'
-            """.format(id_contenido)
-        )
-        tiene_director=cur.fetchall()
-        if tiene_director:
-            flash('No se puede debido a que el contenido ya contiene un director')
-        else:
-            cur.execute(
-            """
-            INSERT INTO director_contenido (id_director,id_contenido) VALUES ('{0}','{1}');
-            """.format(id_director,id_contenido)
-            )
-            conn.commit()
-            flash("Director agregado exitosamente al contenido")
-    return redirect(url_for('agregar_director_contenido', id = id_contenido))
-
-#eliminar el director al contido que se selecciono
-@app.route('/eliminar_director_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
-def eliminar_director_contenido_seleccionado(id_director,id_contenido):
-    #revisar si el director ya esta en el contenido 
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute(
-        """
-        SELECT * FROM director_contenido WHERE id_director = '{0}' AND id_contenido = '{1}';
-        """.format(id_director,id_contenido)
-    )
-    existe = cur.fetchone()
-
-    if existe:
         cur.execute(
         """
-        DELETE FROM director_contenido WHERE id_director = '{0}' AND id_contenido = '{1}';
-        """.format(id_director,id_contenido)
+        INSERT INTO genero_contenido (id_genero,id_contenido) VALUES ('{0}','{1}');
+        """.format(id_genero,id_contenido)
         )
         conn.commit()
-        flash("Director eliminado exitosamente al contenido")
+        flash("genero agregado exitosamente al contenido")
+    return redirect(url_for('agregar_genero_contenido', id = id_contenido))
+
+#eliminar el actor al contido que se selecciono
+@app.route('/eliminar_genero_contenido_seleccionado/<id_genero>,<id_contenido>', methods=['GET','POST'])
+def eliminar_genero_contenido_seleccionado(id_genero,id_contenido):
+    #revisar si el actor ya esta en el contenido 
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM genero_contenido WHERE id_genero = '{0}' AND id_contenido = '{1}';
+        """.format(id_genero,id_contenido)
+    )
+    existe = cur.fetchone()
+
+    if existe:
+        cur.execute(
+        """
+        DELETE FROM genero_contenido WHERE id_genero = '{0}' AND id_contenido = '{1}';
+        """.format(id_genero,id_contenido)
+        )
+        conn.commit()
+        flash("genero eliminado exitosamente al contenido")
     else:
-        flash('No se puede debido a que no existe el director en el contenido')
-    return redirect(url_for('agregar_director_contenido', id = id_contenido))
+        flash('No se puede debido a que no existe el genero en el contenido')
+    return redirect(url_for('agregar_genero_contenido', id = id_contenido))
 
 #agregar usuarios a la base de datos
 #en si no se puede agregar usuarios pero este se puede utilizar luego para la funcion de agregar peliculas y otros por
