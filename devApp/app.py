@@ -111,7 +111,17 @@ def agregar_actor_contenido(id):
         """
     )
     list_users = cur.fetchall()
-    return render_template('/administradores/agregar_actor_contenido.html', list_users = list_users, id_contenido=id)
+
+    cur.execute(
+        """
+        select a.id, a.nombre from actor_contenido ac, actor a 
+        where ac.id_contenido = {0} and ac.id_actor = a.id;
+        """.format(id)
+    )
+    
+    list_actors = cur.fetchall()
+
+    return render_template('/administradores/agregar_actor_contenido.html', list_users = list_users, id_contenido=id, list_actors = list_actors)
 
 #agregar el actor al contido que se selecciono
 @app.route('/agregar_actor_contenido_seleccionado/<id_actor>,<id_contenido>', methods=['GET','POST'])
@@ -135,6 +145,7 @@ def agregar_actor_contenido_seleccionado(id_actor,id_contenido):
         )
         conn.commit()
         flash("actor agregado exitosamente al contenido")
+
     return redirect(url_for('agregar_actor_contenido', id = id_contenido))
 
 #eliminar el actor al contido que se selecciono
