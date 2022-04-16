@@ -1,10 +1,9 @@
 {% extends 'homepage/layout_home.html' %}
   
-{% block title %}Home{% endblock %}
+{% block title %}Reproduccion{% endblock %}
   
 {%block content %}
-    <h1 class="h2">Peliculas</h1>
-    <p>Bienvenido de vuelta, {{ user}}!</p>
+    <h1 class="h2">En Reproduccion</h1>
     {% with messages = get_flashed_messages() %}
         {% if messages %}
         {% for message in messages %}
@@ -23,10 +22,6 @@
                     <tr>
                         <td>ID</td>
                         <td>Nombre</td>
-                        <td>Tipo</td>
-                        <td>Link</td>
-                        <td>Duracion (minutos)</td>
-                        <td>Accion</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -34,14 +29,6 @@
                     <tr>
                         <td>{{row[0]}}</td>
                         <td>{{row[1]}}</td>
-                        <td>{{row[2]}}</td>
-                        <td>{{row[3]}}</td>
-                        <td>{{row[4]}}</td>
-                        <td width="130">
-                            <a href="/agregar_contenido_en_reproduccion/{{row[0]}}" class="btn btn-success btn-block">Ver</a>
-                            <a href="/agregar_contenido_en_favoritos/{{row[0]}}" class="btn btn-warning btn-block">Favoritos</a>
-                            <a href="/agregar_contenido_en_visto/{{row[0]}}" class = "btn btn-secondary btn-block">Vistos</a>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -1251,6 +1251,48 @@ def favoritos():
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('favoritos'))
 
+@app.route('/reproduccion')
+def reproduccion():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # revisar si el usuario esta log in
+    if 'loggedin' in session:
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
+        account = cursor.fetchone()
+        print(account)
+        cursor.execute(
+        """
+        select distinct c.id, c.nombre from perfil_contenido_en_reproduccion pcer, contenido c
+        where pcer.id_contenido = c.id and pcer.id_cuenta = {0};
+        """.format(session['id_conected'])
+        )
+        list_users = cursor.fetchall()
+        print(list_users)
+        # si es usuraio esta conectado mostrar pantalla de home
+        return render_template('homepage/reproduccion.html', account=account, list_users= list_users, user=session['username'])
+    # si el usuario no esta conectado redireccionarlo a la pantalla de home
+    return redirect(url_for('reproduccion'))
+
+@app.route('/visto')
+def visto():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # revisar si el usuario esta log in
+    if 'loggedin' in session:
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
+        account = cursor.fetchone()
+        print(account)
+        cursor.execute(
+        """
+        select distinct c.id, c.nombre from perfil_contenido_visto pcv, contenido c
+        where pcv.id_contenido = c.id and pcv.id_cuenta = {0};
+        """.format(session['id_conected'])
+        )
+        list_users = cursor.fetchall()
+        print(list_users)
+        # si es usuraio esta conectado mostrar pantalla de home
+        return render_template('homepage/visto.html', account=account, list_users= list_users, user=session['username'])
+    # si el usuario no esta conectado redireccionarlo a la pantalla de home
+    return redirect(url_for('visto'))
+
 #para mostrar el perfil del administrador
 @app.route('/perfil_admin')
 def perfil_admin(): 
