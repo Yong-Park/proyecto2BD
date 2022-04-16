@@ -182,7 +182,17 @@ def agregar_director_contenido(id):
         """
     )
     list_users = cur.fetchall()
-    return render_template('/administradores/agregar_director_contenido.html', list_users = list_users, id_contenido=id)
+
+    cur.execute(
+        """
+        select d.id, d.nombre from director_contenido dc, director d 
+        where dc.id_contenido = {0} and dc.id_director = d.id;
+        """.format(id)
+    )
+    
+    list_director = cur.fetchall()
+
+    return render_template('/administradores/agregar_director_contenido.html', list_users = list_users, id_contenido=id, list_director = list_director)
 
 #agregar el director al contido que se selecciono
 @app.route('/agregar_director_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
@@ -253,7 +263,17 @@ def agregar_genero_contenido(id):
         """
     )
     list_users = cur.fetchall()
-    return render_template('/administradores/agregar_genero_contenido.html', list_users = list_users, id_contenido=id)
+
+    cur.execute(
+        """
+        select  g.id, g.nombre from genero_contenido gc, generos g
+        where gc.id_contenido = {0} and gc.id_genero = g.id;
+        """.format(id)
+    )
+    
+    list_generos = cur.fetchall()
+
+    return render_template('/administradores/agregar_genero_contenido.html', list_users = list_users, id_contenido=id, list_generos = list_generos)
 
 #agregar el genero al contido que se selecciono
 @app.route('/agregar_genero_contenido_seleccionado/<id_genero>,<id_contenido>', methods=['GET','POST'])
@@ -313,7 +333,17 @@ def agregar_premio_contenido(id):
         """
     )
     list_users = cur.fetchall()
-    return render_template('/administradores/agregar_premio_contenido.html', list_users = list_users, id_contenido=id)
+
+    cur.execute(
+        """
+        select p.id, p.nombre from premio_contenido pc, premios p
+        where pc.id_contenido = {0} and pc.id_premio = p.id;
+        """.format(id)
+    )
+    
+    list_premios = cur.fetchall()
+
+    return render_template('/administradores/agregar_premio_contenido.html', list_users = list_users, id_contenido=id, list_premios = list_premios)
 
 #agregar el premio al contido que se selecciono
 @app.route('/agregar_premio_contenido_seleccionado/<id_premio>,<id_contenido>', methods=['GET','POST'])
