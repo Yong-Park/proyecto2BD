@@ -650,6 +650,8 @@ def agregar_contenido_en_favoritos(id_peli):
         return redirect(url_for('home'))
     return redirect(url_for('home'))
 
+
+
 #para agregar el contenido con la cuenta que esta a vistos en caso que ya esta en vistos mostrar error que no se puede pq ya esta en vistos
 @app.route('/agregar_contenido_en_visto/<id_peli>', methods=['POST','GET'])
 def agregar_contenido_en_visto(id_peli):
@@ -1227,6 +1229,27 @@ def perfil():
         return render_template('homepage/perfil.html', account=account, user = session['username'])
     # User is not loggedin redirect to login page
     return redirect(url_for('login'))
+
+@app.route('/favoritos')
+def favoritos():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # revisar si el usuario esta log in
+    if 'loggedin' in session:
+        cursor.execute('SELECT * FROM perfil WHERE id = {0}'.format(session['id']))
+        account = cursor.fetchone()
+        print(account)
+        cursor.execute(
+        """
+        select distinct c.id, c.nombre from perfil_contenido_favoritos pcf, contenido c
+        where pcf.id = c.id and pcf.id_cuenta = ;
+        """
+        )
+        list_users = cursor.fetchall()
+        print(list_users)
+        # si es usuraio esta conectado mostrar pantalla de home
+        return render_template('homepage/favoritos.html', account=account, list_users= list_users, user=session['username'])
+    # si el usuario no esta conectado redireccionarlo a la pantalla de home
+    return redirect(url_for('favoritos'))
 
 #para mostrar el perfil del administrador
 @app.route('/perfil_admin')
