@@ -1241,8 +1241,8 @@ def favoritos():
         cursor.execute(
         """
         select distinct c.id, c.nombre from perfil_contenido_favoritos pcf, contenido c
-        where pcf.id = c.id and pcf.id_cuenta = ;
-        """
+        where pcf.id_contenido = c.id and pcf.id_cuenta = {0};
+        """.format(session['id_conected'])
         )
         list_users = cursor.fetchall()
         print(list_users)
