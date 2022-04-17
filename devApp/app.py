@@ -104,29 +104,27 @@ def admin_genero():
 #abrir el admin_reportes
 @app.route('/admin_reportes')
 def admin_reportes():
-    
-
-
     return render_template('/administradores/admin_reportes.html')
 
-@app.route('/admin_reporte1', methods=['POST'])
+@app.route('/admin_reporte1')
 def admin_reporte1():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    if request.method == 'POST':
-        nombre = request.form['nombre']
-        tipo = request.form['tipo']
-        link = request.form['link']
-        duracion= request.form['duracion']
+    
+    fecha_inicio = request.form['fecha_inicio']
+    fecha_final = request.form['fecha_final']
 
-        cur.execute(
-            """
-            INSERT INTO contenido (nombre, tipo, link, duracion) VALUES ('{0}','{1}','{2}','{3}')
-            """.format(nombre,tipo,link,duracion)
-        )
-        conn.commit()
+    cur.execute(
+        """
+        select g.nombre, sum(c.duracion) from contenido c, perfil_contenido_visto pcv, genero_contenido gc, generos g 
+        where g.id = gc.id_genero and c.id = gc.id_contenido and pcv.fecha between {0} and {1}
+        group by g.nombre
+        order by sum(c.duracion) desc;
+        """.format(fecha_inicio, fecha_final)
+    )
 
-        flash('Contenido agregado exitosamente')
-        return redirect(url_for('admin_reporte1'))
+    list_users = cur.fetchall()
+
+    return render_template('/administradores/admin_reporte1.html', list_users = list_users)
 
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
