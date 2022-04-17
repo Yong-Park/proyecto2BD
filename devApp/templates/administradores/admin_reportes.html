@@ -18,22 +18,13 @@
             {% endwith %}
         </div>
         <div class="col-md-10">
-            <table id="reportes" class="table table-striped table-bordered" style="width: 100%">
-                <thead>
-                    <tr>
-                        <td>Genero</td>
-                        <td>Cantidad de Minutos</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in list_reports %}
-                    <tr>
-                        <td>{{row[0]}}</td>
-                        <td>{{row[1]}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <h4>Tiene los siguientes reportes disponibles:</h4>
+            <a href="/edit_contenido" class="btn btn-secondary btn-block">Reporte Top 10 Generos de Contenido Mas Visto En Un Rango de Fechas</a>
+            <a href="/delete_contenido" class="btn btn-danger btn-delete btn-block">Reporte Cantidad de Reproducciones por Tipo de Cuenta En Un Rango de Fechas</a>
+            <a href="/agregar_actor_contenido" class="btn btn-primary btn-block">Reporte Top </a>
+            <a href="/agregar_director_contenido" class="btn btn-primary btn-block">Director</a>
+            <a href="/agregar_genero_contenido" class="btn btn-success btn-block">Generos</a>
+            <a href="/agregar_premio_contenido" class="btn btn-warning btn-block">Premios</a>
         </div>
     </div>
 {% endblock%}
