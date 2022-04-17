@@ -101,6 +101,24 @@ def admin_genero():
     list_users = cur.fetchall()
     return render_template('/administradores/admin_genero.html', list_users = list_users)
 
+#abrir el agregar_premio_contenido.html e importar los datos de la tabla de contenido
+@app.route('/admin_reportes/<id>', methods=['GET','POST'])
+def admin_reportes():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        """
+        select g.nombre, sum(c.duracion) from contenido c, perfil_contenido_visto pcv, genero_contenido gc, generos g 
+        where g.id = gc.id_genero and c.id = gc.id_contenido
+        group by g.nombre
+        order by sum(c.duracion) desc;
+        """
+    )
+    
+    list_reports = cur.fetchall()
+
+    return render_template('/administradores/admin_reportes.html', list_reports = list_reports)
+
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
 def agregar_actor_contenido(id):
@@ -121,7 +139,16 @@ def agregar_actor_contenido(id):
     
     list_actors = cur.fetchall()
 
-    return render_template('/administradores/agregar_actor_contenido.html', list_users = list_users, id_contenido=id, list_actors = list_actors)
+    cur.execute(
+        """
+        select * from contenido
+        where id = {0};
+        """.format(id)
+    )
+
+    contenido = cur.fetchone()
+
+    return render_template('/administradores/agregar_actor_contenido.html', list_users = list_users, id_contenido=id, list_actors = list_actors, contenido = contenido)
 
 #agregar el actor al contido que se selecciono
 @app.route('/agregar_actor_contenido_seleccionado/<id_actor>,<id_contenido>', methods=['GET','POST'])
@@ -192,7 +219,16 @@ def agregar_director_contenido(id):
     
     list_director = cur.fetchall()
 
-    return render_template('/administradores/agregar_director_contenido.html', list_users = list_users, id_contenido=id, list_director = list_director)
+    cur.execute(
+        """
+        select * from contenido
+        where id = {0};
+        """.format(id)
+    )
+
+    contenido = cur.fetchone()
+
+    return render_template('/administradores/agregar_director_contenido.html', list_users = list_users, id_contenido=id, list_director = list_director, contenido = contenido)
 
 #agregar el director al contido que se selecciono
 @app.route('/agregar_director_contenido_seleccionado/<id_director>,<id_contenido>', methods=['GET','POST'])
@@ -273,7 +309,16 @@ def agregar_genero_contenido(id):
     
     list_generos = cur.fetchall()
 
-    return render_template('/administradores/agregar_genero_contenido.html', list_users = list_users, id_contenido=id, list_generos = list_generos)
+    cur.execute(
+        """
+        select * from contenido
+        where id = {0};
+        """.format(id)
+    )
+
+    contenido = cur.fetchone()
+
+    return render_template('/administradores/agregar_genero_contenido.html', list_users = list_users, id_contenido=id, list_generos = list_generos, contenido = contenido)
 
 #agregar el genero al contido que se selecciono
 @app.route('/agregar_genero_contenido_seleccionado/<id_genero>,<id_contenido>', methods=['GET','POST'])
@@ -343,7 +388,16 @@ def agregar_premio_contenido(id):
     
     list_premios = cur.fetchall()
 
-    return render_template('/administradores/agregar_premio_contenido.html', list_users = list_users, id_contenido=id, list_premios = list_premios)
+    cur.execute(
+        """
+        select * from contenido
+        where id = {0};
+        """.format(id)
+    )
+
+    contenido = cur.fetchone()
+
+    return render_template('/administradores/agregar_premio_contenido.html', list_users = list_users, id_contenido=id, list_premios = list_premios, contenido = contenido)
 
 #agregar el premio al contido que se selecciono
 @app.route('/agregar_premio_contenido_seleccionado/<id_premio>,<id_contenido>', methods=['GET','POST'])
@@ -885,7 +939,7 @@ def actualizar_contenido(id):
             WHERE id = {4}
             """.format(nombre,tipo,link,duracion, id)
         )
-        flash('contenido actualizado exitosamente')
+        flash('Contenido Actualizado Exitosamente')
         conn.commit()
     return redirect(url_for('admin_contenido'))
 
@@ -905,7 +959,7 @@ def actualizar_anuncios(id):
             WHERE id = {2}
             """.format(nombre,link, id)
         )
-        flash('anuncio actualizado exitosamente')
+        flash('Anuncio Actualizado Exitosamente')
         conn.commit()
     return redirect(url_for('admin_anuncios'))
 
