@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, url_for, redirect, flash, session
 import psycopg2 #pip install psycopg2
 import psycopg2.extras
@@ -197,6 +198,23 @@ def admin_reporte3():
     list_actores = cur.fetchall()
 
     return render_template('/administradores/admin_reporte3.html', list_directores = list_directores, list_actores = list_actores)
+
+@app.route('/admin_reporte4', methods=['POST', 'GET'])
+def admin_reporte4():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    fecha_actual = datetime.today()
+    fecha_meses = fecha_actual + timedelta(days=183)
+
+    cur.execute(
+        """
+        select * from fecha_cambio_tipo_perfil fctp, perfil p
+        where fctp.id_perfil = p.id and p.tipo_cuenta = 3
+        and fctp.fecha between '{0}' and '{1}';
+        """.format(fecha_meses, fecha_actual)
+    )
+
+    return render_template('/administradores/admin_reporte4.html')
 
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
