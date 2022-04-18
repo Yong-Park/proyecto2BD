@@ -1013,6 +1013,40 @@ def seleccionar_user(id,user):
         session['username'] = user
     return redirect(url_for('perfil'))
 
+#se selecciona el perfil que el usuario escoja entre todos los que tiene
+@app.route('/seleccionar_user_a_tomar/<id>,<user>', methods=['POST', 'GET'])
+def seleccionar_user_a_tomar(id,user):
+    print(id)
+    print(user)
+    #revisar si la el user ya esta conectado
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM cuenta_conectada WHERE id_cuenta={0}
+        """.format(id)
+    )
+    cuenta_contectada = cur.fetchone()
+    if cuenta_contectada:
+        flash('No se puede debido a que alguien ya esta usando esta cuenta')
+    else:
+        cur.execute(
+            """
+            DELETE FROM cuenta_conectada WHERE id_cuenta = '{0}'
+            """.format(session['id_conected'])
+        )
+        cur.execute(
+            """
+            INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+            """.format(id)
+        )
+        conn.commit()
+        session['id_conected']= id
+        print(session['id_conected'])
+        session['username'] = user
+        return redirect(url_for('home'))
+    return redirect(url_for('escoger_cuenta'))
+
+
 #al darle update del edit_users.html este correra y obtendra los datos y se actualizara
 @app.route('/update_user/<id>', methods=['POST'])
 def actualizar_usuario(id):
@@ -1344,6 +1378,29 @@ def registrar():
     
     return render_template('/ingreso/registrar.html')
 
+#abrir la pantalla de agregar unas cuentas
+@app.route('/escoger_cuenta', methods=['POST', 'GET'])
+def escoger_cuenta():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM cuentas where id_perfil = '{0}' order by id;
+        """.format(session['id'])
+    )
+    print('_______________________________________')
+    print(session['tipo_cuenta'])
+    print('_______________________________________')
+    if int(session['tipo_cuenta']) == 1:
+        list_users = cur.fetchmany(1)
+        print(list_users)
+    elif int(session['tipo_cuenta']) == 2:
+        list_users = cur.fetchmany(4)
+        print(list_users)
+    else:
+        list_users = cur.fetchall()
+
+    return render_template('homepage/escoger_cuenta.html', list_users = list_users)
+
 #para el login de un usuario existente
 @app.route('/login/', methods=['GET', 'POST'])
 def login():
@@ -1383,8 +1440,8 @@ def login():
                 )
                 existe = cur.fetchone()
                 if existe:
-                    flash('No se puede debido a que alguien esta conectado a esta cuenta actualmente')
-                    return redirect(url_for('login'))
+                    flash('No se puede debido a que alguien esta conectado a esta cuenta actualmente escoja uno de los que tiene disponible')
+                    return redirect(url_for('escoger_cuenta'))
                 else:
                     cur.execute(
                         """
