@@ -836,16 +836,6 @@ def agregar_contenido_en_reproduccion(id_peli):
     #revisar si su tipo de no es el gratis
     print('el tipo de cuenta es')
     print(session['tipo_cuenta'])
-    if int(session['tipo_cuenta']) == 2 or int(session['tipo_cuenta']) == 3:
-        print("_____________________________")
-        print("se agregara al historial")
-        print("_____________________________")
-        cur.execute(
-            """
-            INSERT INTO historial_cuentas_avanzadas (id_perfil, id_contenido) VALUES ('{0}','{1}')
-            """.format(session['id_conected'], id_peli)
-        )
-
     conn.commit()
     flash('Contenido en reproduccion')
     return redirect(url_for('home'))
