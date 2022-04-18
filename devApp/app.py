@@ -106,25 +106,89 @@ def admin_genero():
 def admin_reportes():
     return render_template('/administradores/admin_reportes.html')
 
-@app.route('/admin_reporte1')
+@app.route('/admin_reporte1', methods=['POST', 'GET'])
 def admin_reporte1():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
-    fecha_inicio = request.form['fecha_inicio']
-    fecha_final = request.form['fecha_final']
 
-    cur.execute(
-        """
-        select g.nombre, sum(c.duracion) from contenido c, perfil_contenido_visto pcv, genero_contenido gc, generos g 
-        where g.id = gc.id_genero and c.id = gc.id_contenido and pcv.fecha between {0} and {1}
-        group by g.nombre
-        order by sum(c.duracion) desc;
-        """.format(fecha_inicio, fecha_final)
-    )
+    list_users = []
 
-    list_users = cur.fetchall()
+    if request.method == 'POST':
+        fecha_inicio = str(request.form['fecha_inicio'])
+        fecha_final = str(request.form['fecha_final'])
+
+        if(fecha_inicio != '' and fecha_final != ''):
+            cur.execute(
+            """
+            select g.nombre, sum(c.duracion) from contenido c, perfil_contenido_visto pcv, genero_contenido gc, generos g 
+            where g.id = gc.id_genero and c.id = gc.id_contenido and pcv.fecha between '{0}' and '{1}'
+            group by g.nombre
+            order by sum(c.duracion) desc limit 10;
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_users = cur.fetchall()
+        else:
+            flash("Por favor ingrese los datos de fechas")
 
     return render_template('/administradores/admin_reporte1.html', list_users = list_users)
+
+@app.route('/admin_reporte2', methods=['POST', 'GET'])
+def admin_reporte2():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_users = []
+
+    if request.method == 'POST':
+        fecha_inicio = str(request.form['fecha_inicio'])
+        fecha_final = str(request.form['fecha_final'])
+
+        if(fecha_inicio != '' and fecha_final != ''):
+            cur.execute(
+            """
+            select p.tipo_cuenta as tipo_de_cuenta, g.nombre, count(pcer.id_contenido) as Cantidad_de_reproducciones from contenido as c
+            join perfil_contenido_en_reproduccion as pcer on c.id = pcer.id_contenido 
+            join cuentas as c2 on c2.id = pcer.id_cuenta
+            join perfil as p on p.id =c2.id_perfil 
+            join genero_contenido as gc on gc.id_contenido = pcer.id_contenido 
+            join generos as g on gc.id_genero = g.id
+            where pcer.fecha between '{0}' and '{1}' 
+            group by g.nombre, tipo_de_cuenta
+            order by sum(c.duracion) desc limit 10;
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_users = cur.fetchall()
+            for i in list_users:
+                if(i[0] == 1):
+                    i[0] = 'Basica'
+                elif(i[0] == 2):
+                    i[0] = 'Estandar'
+                elif(i[0] == 3):
+                    i[0] = 'Avanzada'
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte2.html', list_users = list_users)
+
+@app.route('/admin_reporte3', methods=['POST', 'GET'])
+def admin_reporte3():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_users = []
+
+    if request.method == 'POST':
+        fecha_inicio = str(request.form['fecha_inicio'])
+        fecha_final = str(request.form['fecha_final'])
+
+        if(fecha_inicio != '' and fecha_final != ''):
+            cur.execute(
+            """
+            
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_users = cur.fetchall()
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte3.html', list_users = list_users)
 
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
