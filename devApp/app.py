@@ -1378,18 +1378,28 @@ def login():
                 #agregar la cuenta esta como conectada en la tabla de cuenta_conectada
                 cur.execute(
                     """
-                    INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+                    SELECT * FROM cuenta_conectada WHERE id_cuenta = '{0}'
                     """.format(session['id_conected'])
                 )
-                cur.execute(
-                    """
-                    INSERT INTO historial_conexiones (id_cuenta) VALUES ('{0}')
-                    """.format(session['id'])
-                )
-                conn.commit()
+                existe = cur.fetchone()
+                if existe:
+                    flash('No se puede debido a que alguien esta conectado a esta cuenta actualmente')
+                    return redirect(url_for('login'))
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+                        """.format(session['id_conected'])
+                    )
+                    cur.execute(
+                        """
+                        INSERT INTO historial_conexiones (id_cuenta) VALUES ('{0}')
+                        """.format(session['id'])
+                    )
+                    conn.commit()
                 
-                # redireccionar al homepage
-                return redirect(url_for('home'))
+                    # redireccionar al homepage
+                    return redirect(url_for('home'))
             else:
                 # Account doesnt exist or username/password incorrect
                 flash('username/contraseña Incorrecta')
