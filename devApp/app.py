@@ -203,18 +203,23 @@ def admin_reporte3():
 def admin_reporte4():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    fecha_actual = datetime.today()
-    fecha_meses = fecha_actual + timedelta(days=183)
+    fecha_actual = datetime.today() + timedelta(days=1)
+    fecha_meses = fecha_actual - timedelta(days=183)
+
+    print(fecha_actual)
+    print(fecha_meses)
 
     cur.execute(
         """
-        select * from fecha_cambio_tipo_perfil fctp, perfil p
-        where fctp.id_perfil = p.id and p.tipo_cuenta = 3
+        select count(fctp.id) from fecha_cambio_tipo_perfil fctp, perfil p
+        where fctp.id_perfil = p.id
         and fctp.fecha between '{0}' and '{1}';
         """.format(fecha_meses, fecha_actual)
     )
 
-    return render_template('/administradores/admin_reporte4.html')
+    list_cuentas = cur.fetchall()
+
+    return render_template('/administradores/admin_reporte4.html', list_cuentas = list_cuentas)
 
 @app.route('/admin_reporte5', methods=['POST', 'GET'])
 def admin_reporte5():
