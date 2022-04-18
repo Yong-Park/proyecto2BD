@@ -1381,6 +1381,11 @@ def login():
                     INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
                     """.format(session['id_conected'])
                 )
+                cur.execute(
+                    """
+                    INSERT INTO historial_conexiones (id_cuenta) VALUES ('{0}')
+                    """.format(session['id'])
+                )
                 conn.commit()
                 
                 # redireccionar al homepage
