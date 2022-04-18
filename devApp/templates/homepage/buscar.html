@@ -1,0 +1,44 @@
+{% extends "homepage/layout_home.html" %}
+{%block content %}
+    <div class ="row"><h3>Buscar</h3></div>
+    <div class = "row">
+        <div class="col-md-4">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="card card-body">
+                <form action ="/buscar_contenido" method="POST">
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="actor" placeholder="Nombre actor">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="director" placeholder="Nombre director">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="contenido" placeholder="Nombre contenido">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="genero" placeholder="Nombre genero">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="premio" placeholder="Nombre premio">
+                    </div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" name="tipo" placeholder="Pelicula/Serie">
+                    </div>
+                    <button class="btn btn-primary btn-block">
+                        Buscar
+                    </button>
+                </form>
+            </div>
+        </div>
+{% endblock%}
