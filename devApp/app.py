@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from flask import Flask, render_template, render_template_string, request, url_for, redirect, flash, session
+from flask import Flask, render_template, request, url_for, redirect, flash, session
 import psycopg2 #pip install psycopg2
 import psycopg2.extras
 import re
@@ -215,6 +215,34 @@ def admin_reporte4():
     )
 
     return render_template('/administradores/admin_reporte4.html')
+
+@app.route('/admin_reporte5', methods=['POST', 'GET'])
+def admin_reporte5():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_hours = []
+
+    if request.method == 'POST':
+
+        fecha_inicio = request.form['fecha_inicio']
+
+        if(fecha_inicio != ''):
+            fecha_final = datetime.strptime(fecha_inicio, '%Y-%m-%d') + timedelta(days=1)
+            cur.execute(
+            """
+            select extract(hour from fecha), count(extract(hour from fecha)) as cantidad from historial_conexiones hc
+            where fecha between '{0}' and '{1}'
+            group by extract(hour from fecha)
+            order by cantidad desc limit 1; 
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_hours = cur.fetchall()
+            print(list_hours)
+
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte5.html', list_hours = list_hours)
 
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
@@ -1594,46 +1622,6 @@ def visto():
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('visto'))
 
-@app.route('/buscar', methods=['POST','GET'])
-def buscar():
-    # revisar si el usuario esta log in
-    if 'loggedin' in session:
-        # si es usuraio esta conectado mostrar pantalla de home
-        return render_template('homepage/buscar.html')
-    # si el usuario no esta conectado redireccionarlo a la pantalla de home
-    return render_template(url_for('buscar'))
-
-@app.route('/buscar_contenido', methods=['POST','GET'])
-def buscar_contenido():
-    actor = request.form['actor']
-    director = request.form['director']
-    contenido = request.form['contenido']
-    genero = request.form['genero']
-    premio = request.form['premio']
-    tipo = request.form['tipo']
-    print(actor)
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    # revisar si el usuario esta log in
-    if 'loggedin' in session:
-        cur.execute(
-            """
-            select distinct c.id, c.nombre, c.tipo, c.link, d.nombre, a.nombre, g.nombre, p.nombre from contenido c, director_contenido dc, director d, actor_contenido ac, actor a, genero_contenido gc, generos g,
-            premio_contenido pc, premios p where c.id = dc.id_contenido and dc.id_director = d.id and c.id = ac.id_contenido and ac.id_actor = a.id
-            and c.id = gc.id_contenido and gc.id_genero = g.id and c.id = pc.id_contenido and pc.id_premio = p.id and (lower(c.nombre) like lower('{0}%') and 
-            lower(c.tipo) like lower('{1}%') and lower(d.nombre) like lower('{2}%') and lower(a.nombre) like lower('{3}%') and lower(g.nombre) like lower('{4}%') and
-            lower(p.nombre) like lower('{5}%'))
-            """.format(contenido, tipo, director,actor, genero, premio)
-        )
-
-        list_users = cur.fetchall()
-        print(list_users)
-        # si es usuraio esta conectado mostrar pantalla de home
-        return render_template('homepage/mostrar_buscado.html', list_users=list_users)
-    # si el usuario no esta conectado redireccionarlo a la pantalla de home
-    return render_template(url_for('buscar'))
-
-
-
 #para mostrar el perfil del administrador
 @app.route('/perfil_admin')
 def perfil_admin(): 
@@ -1734,3 +1722,4 @@ def actualizar_usuario_tipo_cuenta(id):
 #correr el programa
 if __name__ == '__main__':
     app.run(debug=True)
+
