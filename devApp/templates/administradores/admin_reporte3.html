@@ -2,7 +2,7 @@
 {% extends "administradores/layout_admin_homepage.html" %}
 {%block body %}
     <div class ="row"><h3>REPORTE</h3></div>
-    <div class ="row"><h3>TOP 10 GENEROS DE CONTENIDO MAS VISTO EN UN RANGO DE FECHAS</h3></div>
+    <div class ="row"><h3>TOP 10 DIRECTORES Y ACTORES DE LAS PELICULAS QUE HAN VISTO LOS PERFILES ESTANDAR Y AVANZADO</h3></div>
     <div class = "row">
         <div class="col-md-4">
             {% with messages = get_flashed_messages() %}
@@ -17,31 +17,37 @@
             {% endfor %}
             {% endif %}
             {% endwith %}
-            <div class="card card-body">
-                <p>Ingresar la fecha con el siguiente formato YYYY-MM-DD</p>
-                <form action ="/admin_reporte1" method="POST">
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="fecha_inicio" placeholder="Fecha de Inicio">
-                    </div>
-                    <div class="form-group">
-                        <input type="text" class="form-control" name="fecha_final" placeholder="Fecha Final">
-                    </div>
-                    <button class="btn btn-primary btn-block">
-                        Obtener Reporte
-                    </button>
-                </form>
-            </div>
         </div>
         <div class="col-md-10">
-            <table id="example" class="table table-striped table-bordered" style="width: 100%">
+            <br>
+            <p>Lista de Directores</p>
+            <table id="directores" class="table table-striped table-bordered" style="width: 100%">
                 <thead>
                     <tr>
-                        <td>Genero</td>
-                        <td>Cantidad de Minutos</td>
+                        <td>Director</td>
+                        <td>Cantidad de Visualizaciones</td>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for row in list_users %}
+                    {% for row in list_directores %}
+                    <tr>
+                        <td>{{row[0]}}</td>
+                        <td>{{row[1]}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <br>
+            <p>Lista de Actores</p>
+            <table id="actores" class="table table-striped table-bordered" style="width: 100%">
+                <thead>
+                    <tr>
+                        <td>Actor</td>
+                        <td>Cantidad de Visualizaciones</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in list_directores %}
                     <tr>
                         <td>{{row[0]}}</td>
                         <td>{{row[1]}}</td>

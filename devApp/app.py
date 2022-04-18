@@ -168,27 +168,35 @@ def admin_reporte2():
 
     return render_template('/administradores/admin_reporte2.html', list_users = list_users)
 
-@app.route('/admin_reporte3', methods=['POST', 'GET'])
+@app.route('/admin_reporte3')
 def admin_reporte3():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    list_users = []
+    cur.execute(
+        """
+        select d.nombre, count(d.id) from contenido c, perfil_contenido_visto pcv, cuentas c2, perfil p, director d, director_contenido dc 
+        where c.id = pcv.id_contenido and c2.id = pcv.id_cuenta and c2.id_perfil = p.id
+        and d.id = dc.id_director and c.id = dc.id_contenido and (p.tipo_cuenta = 2 or p.tipo_cuenta = 3)
+        group by d.nombre
+        order by count(d.id) desc limit 10;
+        """
+    )
 
-    if request.method == 'POST':
-        fecha_inicio = str(request.form['fecha_inicio'])
-        fecha_final = str(request.form['fecha_final'])
+    list_directores = cur.fetchall()
 
-        if(fecha_inicio != '' and fecha_final != ''):
-            cur.execute(
-            """
-            
-            """.format(fecha_inicio, fecha_final)
-            )
-            list_users = cur.fetchall()
-        else:
-            flash("Por favor ingrese los datos de fechas")
+    cur.execute(
+        """
+        select a.nombre, count(a.id) from contenido c, perfil_contenido_visto pcv, cuentas c2, perfil p, actor a, actor_contenido ac
+        where c.id = pcv.id_contenido and c2.id = pcv.id_cuenta and c2.id_perfil = p.id
+        and a.id = ac.id_actor and c.id = ac.id_contenido and (p.tipo_cuenta = 2 or p.tipo_cuenta = 3)
+        group by a.nombre
+        order by count(a.id) desc limit 10;
+        """
+    )
+    
+    list_actores = cur.fetchall()
 
-    return render_template('/administradores/admin_reporte3.html', list_users = list_users)
+    return render_template('/administradores/admin_reporte3.html', list_directores = list_directores, list_actores = list_actores)
 
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
