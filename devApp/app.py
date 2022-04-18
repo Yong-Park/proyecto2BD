@@ -960,9 +960,31 @@ def obtener_genero(id):
 def seleccionar_user(id,user):
     print(id)
     print(user)
-    session['id_conected']= id
-    print(session['id_conected'])
-    session['username'] = user
+    #revisar si la el user ya esta conectado
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        SELECT * FROM cuenta_conectada WHERE id_cuenta={0}
+        """.format(id)
+    )
+    cuenta_contectada = cur.fetchone()
+    if cuenta_contectada:
+        flash('No se puede debido a que alguien ya esta usando esta cuenta')
+    else:
+        cur.execute(
+            """
+            DELETE FROM cuenta_conectada WHERE id_cuenta = '{0}'
+            """.format(session['id_conected'])
+        )
+        cur.execute(
+            """
+            INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+            """.format(id)
+        )
+        conn.commit()
+        session['id_conected']= id
+        print(session['id_conected'])
+        session['username'] = user
     return redirect(url_for('perfil'))
 
 #al darle update del edit_users.html este correra y obtendra los datos y se actualizara
@@ -1327,6 +1349,14 @@ def login():
                 session['username'] = account['nombre_usuario']
                 session['id_conected'] = account['id']
                 session['tipo_cuenta'] = account['tipo_cuenta']
+                #agregar la cuenta esta como conectada en la tabla de cuenta_conectada
+                cur.execute(
+                    """
+                    INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+                    """.format(session['id_conected'])
+                )
+                conn.commit()
+                
                 # redireccionar al homepage
                 return redirect(url_for('home'))
             else:
@@ -1360,16 +1390,23 @@ def home():
     # si el usuario no esta conectado redireccionarlo a la pantalla de home
     return redirect(url_for('login'))
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET','POST'])
 def logout():
     # Remove session data, this will log the user out
-   session.pop('loggedin', None)
-   session.pop('id', None)
-   session.pop('username', None)
-   session.pop('id_conected', None)
-   session.pop('tipo_cuenta', None)
-   # Redirect to login page
-   return redirect(url_for('login'))
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        DELETE FROM cuenta_conectada where id_cuenta = '{0}'
+        """.format(session['id_conected'])
+    )
+    conn.commit()
+    session.pop('loggedin', None)
+    session.pop('id', None)
+    session.pop('username', None)
+    session.pop('id_conected', None)
+    session.pop('tipo_cuenta', None)
+    # Redirect to login page
+    return redirect(url_for('login'))
 
 @app.route('/logout_admin')
 def logout_admin():
