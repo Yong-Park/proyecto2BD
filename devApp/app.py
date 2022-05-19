@@ -729,6 +729,79 @@ def agregar_anuncios():
         flash('Anuncio agregado exitosamente')
         return redirect(url_for('admin_anuncios'))
 
+#para agrear nuevo usuario por parte del admin a la tabla de usuarios
+@app.route('/agregar_usuario_admin', methods=['POST','GET'])
+def agregar_usaurio_admin():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    # resvisar que fuera por funcion de post, que exista nombre_usuario la contrasena y el correo
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'email' in request.form:
+        # variables que reciben los textos que se llenaron en registrar.html
+        nombre_completo = request.form['nombre']
+        username = request.form['username']
+        password = request.form['password']
+        email = request.form['email']
+
+        #hashea la contrasena
+        _hashed_password = generate_password_hash(password)
+        
+        #revisar si el nombre existe en la base de datos
+        cur.execute(
+            """
+            SELECT * FROM perfil WHERE nombre = '{0}'
+            """.format(nombre_completo)
+        )
+        perfil = cur.fetchone()
+        print(perfil)
+        if perfil:
+            flash('Ese perfil con ese nombre ya existe!')
+        else:
+            #revisar si la cuenta ya existe en la base de datos de perfil
+            cur.execute(
+                """
+                SELECT * FROM cuentas WHERE nombre_cuenta = '{0}'
+                """.format(username)
+            )
+            account = cur.fetchone()
+            print(account)
+            #si la cuenta mostrar error y chequeo de validaciones de otras
+            if account:
+                flash('La cuenta ya existe!')
+            elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+                flash('Email invalido!')
+            elif not re.match(r'[A-Za-z0-9]+', username):
+                flash('User Name solo debe de contener letras o numeros!')
+            elif not username or not password or not email or not nombre_completo:
+                flash('Porfavor llene las casillas!')
+            else:
+                # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
+                cur.execute(
+                    """
+                    INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta) VALUES ('{0}','{1}','{2}','{3}', '1')
+                    """.format(nombre_completo, username, _hashed_password, email)
+                    )
+                conn.commit()
+                flash('Te has registrado exitosamente!')
+                #obtener el id del perfil ingresado
+                cur.execute(
+                    """
+                    SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+                    """.format(username)
+                )
+                account_ = cur.fetchone()
+                cur.execute(
+                    """
+                    INSERT INTO cuentas (id_perfil, nombre_cuenta) VALUES ('{0}','{1}')
+                    """.format(account_[0],username)
+                )
+                conn.commit()
+    elif request.method == 'POST':
+         # los datos estan vacios y solo se realizo la funcion de post
+        flash('Porfavor llene las casillas!')
+        # mostrar este mensaje en caso que no esten llenas las casillas
+        
+    return redirect(url_for('admin_usuarios'))
+    
+
 #para agregar actores en la tabla de actor
 @app.route('/agregar_actor', methods=['POST'])
 def agregar_actor():
