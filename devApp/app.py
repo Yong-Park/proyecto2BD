@@ -107,6 +107,11 @@ def admin_genero():
 def admin_reportes():
     return render_template('/administradores/admin_reportes.html')
 
+#abrir el admin_generar_datos
+@app.route('/admin_generar_datos')
+def admin_generar_datos():
+    return render_template('/administradores/admin_generar_datos.html')
+
 @app.route('/admin_reporte1', methods=['POST', 'GET'])
 def admin_reporte1():
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -866,6 +871,45 @@ def agregar_genero():
         flash('Premoi agregado exitosamente')
         return redirect(url_for('admin_genero'))
 
+#para generar datos y agregarlos al perfil
+@app.route('/generar_historial_conteido', methods=['POST','GET'])
+def generar_historial_conteido():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        #guardar todos las cuentas existentes que hay de la base de datos
+        cur.execute(
+            """
+            SELECT id FROM cuentas
+            """
+        )
+        cuentas = cur.fetchall()
+        print("id de las cuenta")
+        print(cuentas)
+        cur.execute(
+            """
+            SELECT id FROM contenido
+            """
+        )
+        contenido = cur.fetchall()
+        print("id de los contenidos")
+        print(contenido)
+        #recibir los parametros
+        date = request.form['date']
+        cantidad = request.form['cantidad']
+        print(cantidad)
+        print(type(cantidad))
+        for x in range (int(cantidad)):
+            cuenta_escogida = random.choice(cuentas)
+            contenido_escogido = random.choice(contenido)
+            cur.execute(
+                """
+                INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
+                """.format(cuenta_escogida[0],contenido_escogido[0], date)
+            )
+        conn.commit()
+        flash('Datos generados exitosamente')
+        return redirect(url_for('admin_generar_datos'))
+
 #para agregar el username correspondiente a la tabla de contenido en reproduccion segun con el perfil que este conectado
 @app.route('/agregar_contenido_en_reproduccion/<id_peli>', methods=['POST','GET'])
 def agregar_contenido_en_reproduccion(id_peli):
@@ -904,7 +948,7 @@ def agregar_contenido_en_reproduccion(id_peli):
             cur.execute(
                 """
                 INSERT INTO anuncios_contenido (id_perfil, id_contenido, id_anuncios) VALUES ('{0}','{1}','{2}')
-                """.format(session['id'],id_peli,anuncio_escogido[0])
+                """.format(session['id_conected'],id_peli,anuncio_escogido[0])
             )
     #revisar si su tipo de no es el gratis
     print('el tipo de cuenta es')
