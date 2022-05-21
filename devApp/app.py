@@ -107,7 +107,7 @@ def admin_genero():
 def admin_reportes():
     return render_template('/administradores/admin_reportes.html')
 
-#abrir el admin_generar_datos
+#abrir el admin_datos
 @app.route('/admin_generar_datos')
 def admin_generar_datos():
     return render_template('/administradores/admin_generar_datos.html')
@@ -870,6 +870,55 @@ def agregar_genero():
         conn.commit()
         flash('Premoi agregado exitosamente')
         return redirect(url_for('admin_genero'))
+#generar  una hora de forma aleatoria
+def randomTimeRange():
+    start_time_input = '00:00:01'
+    end_time_input = '23:59:59'
+
+    start_time = start_time_input.split(':')
+    end_time = end_time_input.split(':')
+
+    start_hour = start_time[0]
+    start_minute = start_time[1]
+    start_seconds = start_time[2]
+
+    end_hour = end_time[0]
+    end_minute = end_time[1]
+    end_seconds = end_time[2]
+
+    # Get maximum end time for randrange
+    if end_hour == '23' and end_minute != '00':
+        max_hour = 23 + 1
+    else:
+        max_hour = start_hour
+
+    if start_minute > end_minute:
+        minutes = random.randrange(int(end_minute), int(start_minute))
+    elif start_minute < end_minute:
+        minutes = random.randrange(int(start_minute), int(end_minute))
+
+    if start_hour == end_hour:
+        hours = start_hour
+    elif start_hour != end_hour:
+        hours = random.randrange(int(start_hour), int(max_hour))
+
+    if str(hours) == str(end_hour):
+        minutes = random.randrange(int(start_minute), int(end_minute))
+    else:
+        minutes = random.randrange(0, 59)
+
+    if start_seconds == end_seconds:
+        seconds = start_seconds
+    elif start_seconds > end_seconds:
+        seconds = random.randrange(int(start_seconds), int(59))
+    elif start_seconds < end_seconds:
+        seconds = random.randrange(int(start_seconds), int(end_seconds))
+
+    h = int(hours)
+    m = int(minutes)
+    s = int(seconds)
+
+    return f"{h:02d}" + ':' + f"{m:02d}" + ':' + f"{s:02d}"
 
 #para generar datos y agregarlos al perfil
 @app.route('/generar_historial_conteido', methods=['POST','GET'])
@@ -897,14 +946,110 @@ def generar_historial_conteido():
         date = request.form['date']
         cantidad = request.form['cantidad']
         print(cantidad)
+        print(date)
         print(type(cantidad))
         for x in range (int(cantidad)):
+            time = randomTimeRange()
+            date_time = date + ' ' + time
             cuenta_escogida = random.choice(cuentas)
             contenido_escogido = random.choice(contenido)
             cur.execute(
                 """
                 INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
-                """.format(cuenta_escogida[0],contenido_escogido[0], date)
+                """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
+            )
+        conn.commit()
+        flash('Datos generados exitosamente')
+        return redirect(url_for('admin_generar_datos'))
+
+#para generar datos y agregarlos al perfil
+@app.route('/generar_historial_vistas', methods=['POST','GET'])
+def generar_historial_vistas():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        #guardar todos las cuentas existentes que hay de la base de datos
+        cur.execute(
+            """
+            SELECT id FROM cuentas
+            """
+        )
+        cuentas = cur.fetchall()
+        print("id de las cuenta")
+        print(cuentas)
+        cur.execute(
+            """
+            SELECT id FROM contenido
+            """
+        )
+        contenido = cur.fetchall()
+        print("id de los contenidos")
+        print(contenido)
+        #recibir los parametros
+        date = request.form['date']
+        cantidad = request.form['cantidad']
+        print(cantidad)
+        print(date)
+        print(type(cantidad))
+        for x in range (int(cantidad)):
+            time = randomTimeRange()
+            date_time = date + ' ' + time
+            cuenta_escogida = random.choice(cuentas)
+            contenido_escogido = random.choice(contenido)
+            cur.execute(
+                """
+                INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
+                """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
+            )
+        conn.commit()
+        flash('Datos generados exitosamente')
+        return redirect(url_for('admin_generar_datos'))
+
+#para generar datos y agregarlos al perfil
+@app.route('/generar_historial_reproduccion_vistas', methods=['POST','GET'])
+def generar_historial_reproduccion_vistas():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    if request.method == 'POST':
+        #guardar todos las cuentas existentes que hay de la base de datos
+        cur.execute(
+            """
+            SELECT id FROM cuentas
+            """
+        )
+        cuentas = cur.fetchall()
+        print("id de las cuenta")
+        print(cuentas)
+        cur.execute(
+            """
+            SELECT id FROM contenido
+            """
+        )
+        contenido = cur.fetchall()
+        print("id de los contenidos")
+        print(contenido)
+        #recibir los parametros
+        date = request.form['date']
+        cantidad = request.form['cantidad']
+        print(cantidad)
+        print(date)
+        print(type(cantidad))
+        for x in range (int(cantidad)):
+            time = randomTimeRange()
+            date_time = date + ' ' + time
+            cuenta_escogida = random.choice(cuentas)
+            contenido_escogido = random.choice(contenido)
+            cur.execute(
+                """
+                INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
+                """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
+            )
+            time = randomTimeRange()
+            date_time = date + ' ' + time
+            cuenta_escogida = random.choice(cuentas)
+            contenido_escogido = random.choice(contenido)
+            cur.execute(
+                """
+                INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
+                """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
             )
         conn.commit()
         flash('Datos generados exitosamente')
@@ -991,22 +1136,11 @@ def agregar_contenido_en_visto(id_peli):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        SELECT * FROM perfil_contenido_visto WHERE id_cuenta = '{0}' and id_contenido = '{1}'
+        INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido) VALUES ('{0}','{1}')
         """.format(session['id_conected'], id_peli)
-        )
-    existe =cur.fetchone()
-    print(existe)
-    if existe:
-        flash('No se puede debido a que ya esta en visto')
-    else:
-        cur.execute(
-            """
-            INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido) VALUES ('{0}','{1}')
-            """.format(session['id_conected'], id_peli)
-        )
-        conn.commit()
-        flash('Contenido en agregado en visto')
-        return redirect(url_for('home'))
+    )
+    conn.commit()
+    flash('Contenido en agregado en visto')
     return redirect(url_for('home'))
         
 #se manda al edit_users.html los valores del que se selecciono
