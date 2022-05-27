@@ -1475,7 +1475,7 @@ def eliminar_usuario(id):
         UPDATE perfil SET id_administrador = '{0}' WHERE id = '{1}'
         """.format(session['id'],id)
     )
-
+    conn.commit()
     cur.execute(
         """
         DELETE FROM perfil WHERE id ='{0}'
