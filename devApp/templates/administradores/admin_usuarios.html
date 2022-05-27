@@ -69,7 +69,9 @@
                         <td>{{row[5]}}</td>
                         <td width="130">
                             <a href="/edit_user/{{row[0]}}" class="btn btn-secondary btn-sm">editar_supscripcion</a>
-                            <a href="/delete_user/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">eliminar</a>
+                            <a href="/delete_user/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">eliminar</a> <br />
+                            <a href="/ban_user/{{row[0]}}" class="btn btn-warning btn-sm">Banear</a>
+                            <a href="/activate_user/{{row[0]}}" class="btn btn-info btn-sm">Activar</a>
                         </td>
                     </tr>
                     {% endfor %}

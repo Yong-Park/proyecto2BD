@@ -710,8 +710,8 @@ def agregar_contenido():
 
         cur.execute(
             """
-            INSERT INTO contenido (nombre, tipo, link, duracion) VALUES ('{0}','{1}','{2}','{3}')
-            """.format(nombre,tipo,link,duracion)
+            INSERT INTO contenido (nombre, tipo, link, duracion, id_administrador) VALUES ('{0}','{1}','{2}','{3}','{4}')
+            """.format(nombre,tipo,link,duracion, session['id'])
         )
         conn.commit()
         flash('Contenido agregado exitosamente')
@@ -727,8 +727,8 @@ def agregar_anuncios():
 
         cur.execute(
             """
-            INSERT INTO anuncios (nombre, link) VALUES ('{0}','{1}')
-            """.format(nombre,link)
+            INSERT INTO anuncios (nombre, link, id_administrador) VALUES ('{0}','{1}','{2}')
+            """.format(nombre,link, session['id'])
         )
         conn.commit()
         flash('Anuncio agregado exitosamente')
@@ -781,8 +781,8 @@ def agregar_usaurio_admin():
                 # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
                 cur.execute(
                     """
-                    INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta) VALUES ('{0}','{1}','{2}','{3}', '1')
-                    """.format(nombre_completo, username, _hashed_password, email)
+                    INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta, id_administrador) VALUES ('{0}','{1}','{2}','{3}', '1', '{4}')
+                    """.format(nombre_completo, username, _hashed_password, email, session['id'])
                     )
                 conn.commit()
                 flash('Te has registrado exitosamente!')
@@ -816,8 +816,8 @@ def agregar_actor():
 
         cur.execute(
             """
-            INSERT INTO actor (nombre) VALUES ('{0}')
-            """.format(nombre,)
+            INSERT INTO actor (nombre, id_administrador) VALUES ('{0}','{1}')
+            """.format(nombre,session['id'])
         )
         conn.commit()
         flash('Actor agregado exitosamente')
@@ -1334,9 +1334,9 @@ def actualizar_usuario(id):
             cur.execute(
                 """
                 UPDATE perfil
-                SET tipo_cuenta = '{0}'
-                WHERE id = {1}
-                """.format(tipo_cuenta, id)
+                SET tipo_cuenta = '{0}', id_administrador = '{1}'
+                WHERE id = {2}
+                """.format(tipo_cuenta, session['id'],id)
             )
             flash('usuario actualizado exitosamente')
             conn.commit()
@@ -1362,9 +1362,10 @@ def actualizar_contenido(id):
             SET nombre = '{0}',
                 tipo = '{1}',
                 link = '{2}',
-                duracion = '{3}'
-            WHERE id = {4}
-            """.format(nombre,tipo,link,duracion, id)
+                duracion = '{3}',
+                id_administrador = '{4}'
+            WHERE id = {5}
+            """.format(nombre,tipo,link,duracion, session['id'], id)
         )
         flash('Contenido Actualizado Exitosamente')
         conn.commit()
@@ -1382,9 +1383,10 @@ def actualizar_anuncios(id):
             """
             UPDATE anuncios
             SET nombre = '{0}',
-                link = '{1}'
-            WHERE id = {2}
-            """.format(nombre,link, id)
+                link = '{1}',
+                id_administrador = '{2}'
+            WHERE id = {3}
+            """.format(nombre,link, session['id'],id)
         )
         flash('Anuncio Actualizado Exitosamente')
         conn.commit()
@@ -1400,9 +1402,9 @@ def actualizar_actor(id):
         cur.execute(
             """
             UPDATE actor
-            SET nombre = '{0}'
-            WHERE id = {1}
-            """.format(nombre, id)
+            SET nombre = '{0}', id_administrador = '{1}'
+            WHERE id = {2}
+            """.format(nombre, session['id'],id)
         )
         flash('actor actualizado exitosamente')
         conn.commit()
@@ -1470,6 +1472,12 @@ def eliminar_usuario(id):
 
     cur.execute(
         """
+        UPDATE perfil SET id_administrador = '{0}' WHERE id = '{1}'
+        """.format(session['id'],id)
+    )
+
+    cur.execute(
+        """
         DELETE FROM perfil WHERE id ={0}
         """.format(id)
     )
@@ -1477,12 +1485,88 @@ def eliminar_usuario(id):
     flash("Usuario elimnado exitosamente")
     return redirect(url_for('admin_usuarios'))
 
+#para banear usuarios
+@app.route('/ban_user/<string:id>', methods =['POST','GET'])
+def ban_user(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        """
+        SELECT * FROM perfil WHERE id = '{0}'
+        """.format(id)
+    )
+    cuenta = cur.fetchone()
+
+    #revisar si ya se encuentra baneado
+    cur.execute(
+        """
+        SELECT * FROM banned WHERE nombre_usuario = '{0}'
+        """.format(cuenta['nombre_usuario'])
+    )
+
+    ya_banned = cur.fetchone()
+
+    if (ya_banned):
+        flash('El usuario ya se encuentra banneado')
+        return redirect(url_for('admin_usuarios'))
+    else:
+        cur.execute(
+            """
+            INSERT INTO banned VALUES ('{0}')
+            """.format(cuenta['nombre_usuario'])
+        )
+        conn.commit()
+        flash("Usuario Baneado exitosamente")
+        return redirect(url_for('admin_usuarios'))
+
+#para activar usuarios baneados
+@app.route('/activate_user/<string:id>', methods =['POST','GET'])
+def activate_user(id):
+    print(id)
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(
+        """
+        SELECT * FROM perfil WHERE id = '{0}'
+        """.format(id)
+    )
+    cuenta = cur.fetchone()
+
+    #revisar si sigue en la tabla banned
+    cur.execute(
+        """
+        SELECT * FROM banned WHERE nombre_usuario = '{0}'
+        """.format(cuenta['nombre_usuario'])
+    )
+
+    ya_ban = cur.fetchone()
+
+    if(ya_ban):
+        cur.execute(
+            """
+            DELETE FROM banned WHERE nombre_usuario = '{0}'
+            """.format(cuenta['nombre_usuario'])
+        )
+        conn.commit()
+        flash("Usuario Activado exitosamente")
+        return redirect(url_for('admin_usuarios'))
+    else:
+        flash("Este usuario no esta banneado")
+        return redirect(url_for('admin_usuarios'))
+
 #para eliminar contenido
 @app.route('/delete_contenido/<string:id>', methods =['POST','GET'])
 def eliminar_contenido(id):
     print(id)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
+    cur.execute(
+        """
+        UPDATE contenido SET id_administrador = '{0}' WHERE id = '{1}'
+        """.format(session['id'],id)
+    )
+    
     cur.execute(
         """
         DELETE FROM contenido WHERE id ={0}
@@ -1499,6 +1583,11 @@ def eliminar_anuncios(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
+        UPDATE anuncios SET id_adminsitrador = '{0}' WHERE id = '{1}'
+        """.format(session['id'], id)
+    )
+    cur.execute(
+        """
         DELETE FROM anuncios WHERE id ={0}
         """.format(id)
     )
@@ -1511,6 +1600,11 @@ def eliminar_anuncios(id):
 def eliminar_actor(id):
     print(id)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(
+        """
+        UPDATE actor SET id_administrador = '{0}' WHERE id = '{1}'
+        """.format(session['id'],id)
+    )
     cur.execute(
         """
         DELETE FROM actor WHERE id ={0}
@@ -1627,7 +1721,7 @@ def registrar():
             # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
             cur.execute(
                 """
-                INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta) VALUES ('{0}','{1}','{2}','{3}', '1')
+                INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta, id_administrador) VALUES ('{0}','{1}','{2}','{3}', '1', '')
                 """.format(nombre_completo, username, _hashed_password, email)
                 )
             conn.commit()
@@ -1685,59 +1779,70 @@ def login():
         password = request.form['password']
         print("password ingresado ahorita en login: "+ str(password))
 
-        #revisar si la el username existe en la base de datos
+        #revisar si la cuenta esta banneada
         cur.execute(
             """
-            SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+            SELECT * FROM banned WHERE nombre_usuario = '{0}'
             """.format(username)
         )
-        #fetch solo un dato
-        account = cur.fetchone()
-        print(account)
 
-        if account:
-            password_rs = account['password']
-            print(password_rs)
-            # si la cuenta existe
-            if check_password_hash(password_rs, password):
-                # Create session data, we can access this data in other routes
-                session['loggedin'] = True
-                session['id'] = account['id']
-                session['username'] = account['nombre_usuario']
-                session['id_conected'] = account['id']
-                session['tipo_cuenta'] = account['tipo_cuenta']
-                #agregar la cuenta esta como conectada en la tabla de cuenta_conectada
-                cur.execute(
-                    """
-                    SELECT * FROM cuenta_conectada WHERE id_cuenta = '{0}'
-                    """.format(session['id_conected'])
-                )
-                existe = cur.fetchone()
-                if existe:
-                    flash('No se puede debido a que alguien esta conectado a esta cuenta actualmente escoja uno de los que tiene disponible')
-                    return redirect(url_for('escoger_cuenta'))
-                else:
+        baneado = cur.fetchone()
+        if (baneado):
+            flash("Esta cuenta actualmente esta banneada")
+        else:
+            #revisar si la el username existe en la base de datos
+            cur.execute(
+                """
+                SELECT * FROM perfil WHERE nombre_usuario = '{0}'
+                """.format(username)
+            )
+            #fetch solo un dato
+            account = cur.fetchone()
+            print(account)
+
+            if account:
+                password_rs = account['password']
+                print(password_rs)
+                # si la cuenta existe
+                if check_password_hash(password_rs, password):
+                    # Create session data, we can access this data in other routes
+                    session['loggedin'] = True
+                    session['id'] = account['id']
+                    session['username'] = account['nombre_usuario']
+                    session['id_conected'] = account['id']
+                    session['tipo_cuenta'] = account['tipo_cuenta']
+                    #agregar la cuenta esta como conectada en la tabla de cuenta_conectada
                     cur.execute(
                         """
-                        INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+                        SELECT * FROM cuenta_conectada WHERE id_cuenta = '{0}'
                         """.format(session['id_conected'])
                     )
-                    cur.execute(
-                        """
-                        INSERT INTO historial_conexiones (id_cuenta) VALUES ('{0}')
-                        """.format(session['id'])
-                    )
-                    conn.commit()
-                
-                    # redireccionar al homepage
-                    return redirect(url_for('home'))
+                    existe = cur.fetchone()
+                    if existe:
+                        flash('No se puede debido a que alguien esta conectado a esta cuenta actualmente escoja uno de los que tiene disponible')
+                        return redirect(url_for('escoger_cuenta'))
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO cuenta_conectada (id_cuenta) VALUES ('{0}')
+                            """.format(session['id_conected'])
+                        )
+                        cur.execute(
+                            """
+                            INSERT INTO historial_conexiones (id_cuenta) VALUES ('{0}')
+                            """.format(session['id'])
+                        )
+                        conn.commit()
+                    
+                        # redireccionar al homepage
+                        return redirect(url_for('home'))
+                else:
+                    # Account doesnt exist or username/password incorrect
+                    flash('username/contraseña Incorrecta')
+                    
             else:
                 # Account doesnt exist or username/password incorrect
                 flash('username/contraseña Incorrecta')
-                
-        else:
-            # Account doesnt exist or username/password incorrect
-            flash('username/contraseña Incorrecta')
 
     return render_template('/ingreso/login.html')
 
