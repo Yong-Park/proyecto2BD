@@ -1478,7 +1478,7 @@ def eliminar_usuario(id):
 
     cur.execute(
         """
-        DELETE FROM perfil WHERE id ={0}
+        DELETE FROM perfil WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1569,7 +1569,7 @@ def eliminar_contenido(id):
     
     cur.execute(
         """
-        DELETE FROM contenido WHERE id ={0}
+        DELETE FROM contenido WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1588,7 +1588,7 @@ def eliminar_anuncios(id):
     )
     cur.execute(
         """
-        DELETE FROM anuncios WHERE id ={0}
+        DELETE FROM anuncios WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1607,7 +1607,7 @@ def eliminar_actor(id):
     )
     cur.execute(
         """
-        DELETE FROM actor WHERE id ={0}
+        DELETE FROM actor WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1621,7 +1621,7 @@ def eliminar_director(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        DELETE FROM director WHERE id ={0}
+        DELETE FROM director WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1635,7 +1635,7 @@ def eliminar_premio(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        DELETE FROM premios WHERE id ={0}
+        DELETE FROM premios WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
@@ -1649,7 +1649,7 @@ def eliminar_genero(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        DELETE FROM generos WHERE id ={0}
+        DELETE FROM generos WHERE id ='{0}'
         """.format(id)
     )
     conn.commit()
