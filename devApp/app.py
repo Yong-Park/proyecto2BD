@@ -1475,14 +1475,13 @@ def eliminar_usuario(id):
         UPDATE perfil SET id_administrador = '{0}' WHERE id = '{1}'
         """.format(session['id'],id)
     )
-    print("actualizado")
-    print(id)
+    conn.commit()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
         DELETE FROM perfil WHERE id ='{0}'
         """.format(id)
     )
-    print("eliminado")
     conn.commit()
     flash("Usuario elimnado exitosamente")
     return redirect(url_for('admin_usuarios'))
@@ -1568,7 +1567,8 @@ def eliminar_contenido(id):
         UPDATE contenido SET id_administrador = '{0}' WHERE id = '{1}'
         """.format(session['id'],id)
     )
-    
+    conn.commit()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
         DELETE FROM contenido WHERE id ='{0}'
@@ -1585,9 +1585,11 @@ def eliminar_anuncios(id):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
-        UPDATE anuncios SET id_adminsitrador = '{0}' WHERE id = '{1}'
+        UPDATE anuncios SET id_administrador = '{0}' WHERE id = '{1}'
         """.format(session['id'], id)
     )
+    conn.commit()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
         DELETE FROM anuncios WHERE id ='{0}'
@@ -1607,6 +1609,8 @@ def eliminar_actor(id):
         UPDATE actor SET id_administrador = '{0}' WHERE id = '{1}'
         """.format(session['id'],id)
     )
+    conn.commit()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
         DELETE FROM actor WHERE id ='{0}'
@@ -1723,7 +1727,7 @@ def registrar():
             # La cuenta no existe y todo esta bien entoces se ingresa a la base de datos
             cur.execute(
                 """
-                INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta, id_administrador) VALUES ('{0}','{1}','{2}','{3}', '1', '')
+                INSERT INTO perfil (nombre, nombre_usuario, password, email, tipo_cuenta, id_administrador) VALUES ('{0}','{1}','{2}','{3}', '1', '0')
                 """.format(nombre_completo, username, _hashed_password, email)
                 )
             conn.commit()
