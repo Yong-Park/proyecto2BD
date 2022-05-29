@@ -211,9 +211,6 @@ def admin_reporte4():
     fecha_actual = datetime.today() + timedelta(days=1)
     fecha_meses = fecha_actual - timedelta(days=183)
 
-    print(fecha_actual)
-    print(fecha_meses)
-
     cur.execute(
         """
         select count(fctp.id) from fecha_cambio_tipo_perfil fctp, perfil p
@@ -247,7 +244,6 @@ def admin_reporte5():
             """.format(fecha_inicio, fecha_final)
             )
             list_hours = cur.fetchall()
-            print(list_hours)
 
         else:
             flash("Por favor ingrese los datos de fechas")
@@ -614,15 +610,10 @@ def usuario_agregar_cuentas():
         SELECT * FROM cuentas where id_perfil = '{0}' order by id;
         """.format(session['id'])
     )
-    print('_______________________________________')
-    print(session['tipo_cuenta'])
-    print('_______________________________________')
     if int(session['tipo_cuenta']) == 1:
         list_users = cur.fetchmany(1)
-        print(list_users)
     elif int(session['tipo_cuenta']) == 2:
         list_users = cur.fetchmany(4)
-        print(list_users)
     else:
         list_users = cur.fetchall()
 
@@ -641,7 +632,6 @@ def agregar_cuenta_usuario():
             """.format(username)
         )
         account_exist = cur.fetchone()
-        print(account_exist)
         #si la cuenta mostrar error y chequeo de validaciones de otras
         if account_exist:
             flash('El username ya existe! use otro.')
@@ -661,11 +651,6 @@ def agregar_cuenta_usuario():
                 """.format(session['id'])
             )
             account_users = cur.fetchall()
-            print('estos son los usuarios que tiene la cuenta')
-            print(account_users)
-            print('el largo del de arriba es')
-            print(len(account_users))
-            print(type(account[5]))
             #revisar 
             if account[5]== 1:
                 flash('No puedes agregar mas de 1 cuenta con tu tipo de supscripcion')
@@ -932,32 +917,27 @@ def generar_historial_conteido():
             """
         )
         cuentas = cur.fetchall()
-        print("id de las cuenta")
-        print(cuentas)
         cur.execute(
             """
             SELECT id FROM contenido
             """
         )
         contenido = cur.fetchall()
-        print("id de los contenidos")
-        print(contenido)
         #recibir los parametros
         date = request.form['date']
         cantidad = request.form['cantidad']
-        print(cantidad)
-        print(date)
-        print(type(cantidad))
         for x in range (int(cantidad)):
             time = randomTimeRange()
             date_time = date + ' ' + time
             cuenta_escogida = random.choice(cuentas)
             contenido_escogido = random.choice(contenido)
+
             cur.execute(
                 """
                 INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
                 """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
             )
+        print('insertados')
         conn.commit()
         flash('Datos generados exitosamente')
         return redirect(url_for('admin_generar_datos'))
@@ -974,22 +954,15 @@ def generar_historial_vistas():
             """
         )
         cuentas = cur.fetchall()
-        print("id de las cuenta")
-        print(cuentas)
         cur.execute(
             """
             SELECT id FROM contenido
             """
         )
         contenido = cur.fetchall()
-        print("id de los contenidos")
-        print(contenido)
         #recibir los parametros
         date = request.form['date']
         cantidad = request.form['cantidad']
-        print(cantidad)
-        print(date)
-        print(type(cantidad))
         for x in range (int(cantidad)):
             time = randomTimeRange()
             date_time = date + ' ' + time
@@ -1000,6 +973,7 @@ def generar_historial_vistas():
                 INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
                 """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
             )
+        print('insertados')
         conn.commit()
         flash('Datos generados exitosamente')
         return redirect(url_for('admin_generar_datos'))
@@ -1016,22 +990,15 @@ def generar_historial_reproduccion_vistas():
             """
         )
         cuentas = cur.fetchall()
-        print("id de las cuenta")
-        print(cuentas)
         cur.execute(
             """
             SELECT id FROM contenido
             """
         )
         contenido = cur.fetchall()
-        print("id de los contenidos")
-        print(contenido)
         #recibir los parametros
         date = request.form['date']
         cantidad = request.form['cantidad']
-        print(cantidad)
-        print(date)
-        print(type(cantidad))
         for x in range (int(cantidad)):
             time = randomTimeRange()
             date_time = date + ' ' + time
@@ -1051,6 +1018,7 @@ def generar_historial_reproduccion_vistas():
                 INSERT INTO perfil_contenido_visto (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
                 """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
             )
+        print('insertados')
         conn.commit()
         flash('Datos generados exitosamente')
         return redirect(url_for('admin_generar_datos'))
@@ -1058,7 +1026,6 @@ def generar_historial_reproduccion_vistas():
 #para agregar el username correspondiente a la tabla de contenido en reproduccion segun con el perfil que este conectado
 @app.route('/agregar_contenido_en_reproduccion/<id_peli>', methods=['POST','GET'])
 def agregar_contenido_en_reproduccion(id_peli):
-    print(id_peli)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(
         """
