@@ -2068,15 +2068,35 @@ def buscar_contenido():
     genero = request.form['genero']
     premio = request.form['premio']
     tipo = request.form['tipo']
+
+    words = []
+    words.append(actor)
+    words.append(director)
+    words.append(contenido)
+    words.append(genero)
+    words.append(premio)
+    words.append(tipo)
     print(actor)
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     # revisar si el usuario esta log in
     if 'loggedin' in session:
+        #ingresar las palabras en la tabal de searched_words
+        for x in words:
+            if x !='':
+                print(x)
+                print('insertado')
+                cur.execute(
+                    """
+                    INSERT INTO searched_words (palabra) VALUES ('{0}')
+                    """.format(x)
+                )
+                conn.commit()
+
         cur.execute(
             """
             select distinct c.id, c.nombre, c.tipo, c.link, d.nombre, a.nombre, g.nombre, p.nombre from contenido c, director_contenido dc, director d, actor_contenido ac, actor a, genero_contenido gc, generos g,
             premio_contenido pc, premios p where c.id = dc.id_contenido and dc.id_director = d.id and c.id = ac.id_contenido and ac.id_actor = a.id
-            and c.id = gc.id_contenido and gc.id_genero = g.id and c.id = pc.id_contenido and pc.id_premio = p.id and (lower(c.nombre) like lower('{0}%') and 
+            and c.id = gc.id_contenido and gc.id_genero = g.id and c.id = pc.id_contenido and pc.id_premio = p.id and (lower(c.nombre) like lower('{0}%') and
             lower(c.tipo) like lower('{1}%') and lower(d.nombre) like lower('{2}%') and lower(a.nombre) like lower('{3}%') and lower(g.nombre) like lower('{4}%') and
             lower(p.nombre) like lower('{5}%'))
             """.format(contenido, tipo, director,actor, genero, premio)
