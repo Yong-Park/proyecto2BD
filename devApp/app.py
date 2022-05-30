@@ -926,6 +926,7 @@ def generar_historial_conteido():
         #recibir los parametros
         date = request.form['date']
         cantidad = request.form['cantidad']
+
         for x in range (int(cantidad)):
             time = randomTimeRange()
             date_time = date + ' ' + time
@@ -937,6 +938,7 @@ def generar_historial_conteido():
                 INSERT INTO perfil_contenido_en_reproduccion (id_cuenta, id_contenido, fecha) VALUES ('{0}','{1}','{2}')
                 """.format(cuenta_escogida[0],contenido_escogido[0], date_time)
             )
+
         print('insertados')
         conn.commit()
         flash('Datos generados exitosamente')
