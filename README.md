@@ -7,7 +7,7 @@ se generan datos y se revisan ciertos datos que se requiren.
 ### Flask
 ![image](https://flask.palletsprojects.com/en/2.1.x/_images/flask-logo.png)
 
-[flask](https://flask.palletsprojects.com/en/2.1.x/) es un framework minimalista escrito en Python que permite crear aplicaciones web rápidamente y con un mínimo número de líneas de código. Está basado en la especificación WSGI de Werkzeug y el motor de templates Jinja2 y tiene una licencia BSD.
+[Flask](https://flask.palletsprojects.com/en/2.1.x/) es un framework minimalista escrito en Python que permite crear aplicaciones web rápidamente y con un mínimo número de líneas de código. Está basado en la especificación WSGI de Werkzeug y el motor de templates Jinja2 y tiene una licencia BSD.
 
 ```bash
 $ pip install Flask
@@ -17,7 +17,7 @@ $ pip install Flask
 
 ![image](https://getbootstrap.com/docs/5.2/assets/brand/bootstrap-logo-shadow.png)
 
-[bootstrap](https://getbootstrap.com/) es una biblioteca multiplataforma o conjunto de herramientas de código abierto para diseño de sitios y aplicaciones web.
+[Bootstrap](https://getbootstrap.com/) es una biblioteca multiplataforma o conjunto de herramientas de código abierto para diseño de sitios y aplicaciones web.
 
 ```bash
  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
@@ -27,7 +27,7 @@ $ pip install Flask
 ### Jinja
 ![image](https://jinja.palletsprojects.com/en/3.1.x/_images/jinja-logo.png)
 
-[jinja](https://jinja.palletsprojects.com/en/3.1.x/) es un motor de plantillas web para el lenguaje de programación Python. Fue creado por Armin Ronacher y tiene una licencia BSD. Jinja es similar al motor de plantillas de Django, pero proporciona expresiones similares a las de Python al tiempo que garantiza que las plantillas se evalúen en un espacio aislado.
+[Jinja](https://jinja.palletsprojects.com/en/3.1.x/) es un motor de plantillas web para el lenguaje de programación Python. Fue creado por Armin Ronacher y tiene una licencia BSD. Jinja es similar al motor de plantillas de Django, pero proporciona expresiones similares a las de Python al tiempo que garantiza que las plantillas se evalúen en un espacio aislado.
 
 
 ## Como correrlo
