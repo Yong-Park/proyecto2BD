@@ -4,7 +4,7 @@ se generan datos y se revisan ciertos datos que se requiren.
 
 ## Tecnologias utilizadas
 
-### flask
+### Flask
 ![image](https://flask.palletsprojects.com/en/2.1.x/_images/flask-logo.png)
 
 [flask](https://flask.palletsprojects.com/en/2.1.x/) es un framework minimalista escrito en Python que permite crear aplicaciones web rápidamente y con un mínimo número de líneas de código. Está basado en la especificación WSGI de Werkzeug y el motor de templates Jinja2 y tiene una licencia BSD.
@@ -13,7 +13,7 @@ se generan datos y se revisan ciertos datos que se requiren.
 $ pip install Flask
 ```
 
-### bootstrap
+### Bootstrap
 
 ![image](https://getbootstrap.com/docs/5.2/assets/brand/bootstrap-logo-shadow.png)
 
@@ -24,7 +24,7 @@ $ pip install Flask
  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
 ```
 
-### jinja
+### Jinja
 ![image](https://jinja.palletsprojects.com/en/3.1.x/_images/jinja-logo.png)
 
 [jinja](https://jinja.palletsprojects.com/en/3.1.x/) es un motor de plantillas web para el lenguaje de programación Python. Fue creado por Armin Ronacher y tiene una licencia BSD. Jinja es similar al motor de plantillas de Django, pero proporciona expresiones similares a las de Python al tiempo que garantiza que las plantillas se evalúen en un espacio aislado.
