@@ -250,6 +250,92 @@ def admin_reporte5():
 
     return render_template('/administradores/admin_reporte5.html', list_hours = list_hours)
 
+@app.route('/admin_reporte6', methods=['POST', 'GET'])
+def admin_reporte6():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_contenido = []
+
+    if request.method == 'POST':
+
+        mes = request.form['mes']
+
+        if(mes != ''):
+            cur.execute(
+            """
+            select * from reporte_contenido_horas({0});
+            """.format(mes)
+            )
+            list_contenido = cur.fetchall()
+
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte6.html', list_contenido = list_contenido)
+
+@app.route('/admin_reporte7', methods=['POST', 'GET'])
+def admin_reporte7():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_palabras = []
+
+    cur.execute(
+    """
+    select * from reporte_busquedas;
+    """
+    )
+    list_palabras = cur.fetchall()
+
+    return render_template('/administradores/admin_reporte7.html', list_palabras = list_palabras)
+
+@app.route('/admin_reporte8', methods=['POST', 'GET'])
+def admin_reporte8():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_admins = []
+
+    if request.method == 'POST':
+
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_final = request.form['fecha_final']
+
+        if(fecha_inicio != '' and fecha_final != ''):
+            cur.execute(
+            """
+            select * from reporte_admin_cambios('{0}', '{1}');
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_admins = cur.fetchall()
+
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte8.html', list_admins = list_admins)
+
+@app.route('/admin_reporte9', methods=['POST', 'GET'])
+def admin_reporte9():
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    list_peliculas = []
+
+    if request.method == 'POST':
+
+        fecha_inicio = request.form['fecha_inicio']
+        fecha_final = request.form['fecha_final']
+
+        if(fecha_inicio != '' and fecha_final != ''):
+            cur.execute(
+            """
+            select * from reporte_contenido_reproduccion('{0}', '{1}');
+            """.format(fecha_inicio, fecha_final)
+            )
+            list_peliculas = cur.fetchall()
+
+        else:
+            flash("Por favor ingrese los datos de fechas")
+
+    return render_template('/administradores/admin_reporte9.html', list_peliculas = list_peliculas)
+
 #abrir el agreagar_actor_contenido.html y importar los datos de la tabla de contenido
 @app.route('/agregar_actor_contenido/<id>', methods=['GET','POST'])
 def agregar_actor_contenido(id):
